@@ -40,14 +40,9 @@ func (l ServiceLayer) Generate(ctx context.Context, data *gen.TemplateData) ([]g
 	// 2. User stub (created once, never overwritten)
 	provider := l.AIProvider
 	if provider == nil {
-		provider = ai.NoopProvider{}
+		provider = ai.TemplateProvider{}
 	}
-	methodBody, err := provider.GenerateMethodBody(ctx, ai.MethodRequest{
-		MethodName:  data.OperationMethod,
-		InputType:   "domain." + data.RequestType,
-		OutputType:  "domain." + data.ResponseType,
-		Description: serviceDescription(s),
-	})
+	methodBody, err := provider.GenerateMethodBody(ctx, buildMethodRequest(data, s))
 	if err != nil {
 		return nil, fmt.Errorf("service layer: method body: %w", err)
 	}
@@ -122,4 +117,31 @@ func serviceDescription(s *schema.Schema) string {
 		return s.Service.Description
 	}
 	return ""
+}
+
+func buildMethodRequest(data *gen.TemplateData, s *schema.Schema) ai.MethodRequest {
+	domainTitle := data.DomainTitle
+
+	// Collect required fields with their Go types
+	var required []ai.FieldInfo
+	for _, f := range s.Input {
+		if f.Required {
+			required = append(required, ai.FieldInfo{
+				Name:   f.Name,
+				GoType: toGoType(f.Type),
+			})
+		}
+	}
+
+	return ai.MethodRequest{
+		MethodName:          data.OperationMethod,
+		InputType:           "domain." + data.RequestType,
+		OutputType:          "domain." + data.ResponseType,
+		Operation:           s.Repository.Operation,
+		Description:         serviceDescription(s),
+		RequiredFields:      required,
+		DomainErrValidation: "domain.Err" + domainTitle + "Validation",
+		DomainErrInternal:   "domain.Err" + domainTitle + "Internal",
+		DomainErrNotFound:   "domain.Err" + domainTitle + "NotFound",
+	}
 }

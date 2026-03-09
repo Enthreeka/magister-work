@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"{{ .DomainImport }}"
 )
 
-// {{ .OperationMethod }} implements domain.{{ .ServiceType }}Iface.
-// TODO: replace with your business logic.
+// {{ .OperationMethod }} implements the {{ .DomainTitle }} business logic.
+// This file is yours — codegen will never overwrite it.
 func (s *{{ .ServiceType }}) {{ .OperationMethod }}(ctx context.Context, req *domain.{{ .RequestType }}) (*domain.{{ .ResponseType }}, error) {
-	panic("not implemented: {{ .OperationMethod }}")
+{{ .MethodBody }}
 }

@@ -8,7 +8,8 @@ import (
 var (
 	mu        sync.RWMutex
 	providers = map[string]BusinessLogicProvider{
-		"noop": NoopProvider{},
+		"noop":     NoopProvider{},
+		"template": TemplateProvider{},
 	}
 )
 

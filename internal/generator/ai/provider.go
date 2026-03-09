@@ -20,16 +20,32 @@ type Example struct {
 	Output string
 }
 
+// FieldInfo describes a single input field passed to MethodRequest.
+type FieldInfo struct {
+	Name   string
+	GoType string
+}
+
 // MethodRequest is the context an AI provider receives when asked to
 // generate or scaffold the body of a single service method.
 type MethodRequest struct {
 	MethodName   string
 	InputType    string
 	OutputType   string
+	Operation    string // insert | select | update | delete
 	Dependencies []Dependency
 	FeatureFlags []FeatureFlag
 	Description  string
 	Examples     []Example
+
+	// RequiredFields lists input fields marked required: true in the schema.
+	// Used by TemplateProvider to generate validation checks.
+	RequiredFields []FieldInfo
+
+	// Domain error identifiers for use in generated error wrapping.
+	DomainErrValidation string // e.g. "domain.ErrUserValidation"
+	DomainErrInternal   string // e.g. "domain.ErrUserInternal"
+	DomainErrNotFound   string // e.g. "domain.ErrUserNotFound"
 }
 
 // FeatureFlag is a conditional-logic hint that the AI provider can use
