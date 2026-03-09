@@ -25,7 +25,32 @@ func newAICmd() *cobra.Command {
 		Short: "AI-assisted code generation",
 	}
 	cmd.AddCommand(newAIFillCmd())
+	cmd.AddCommand(newAIListCmd())
 	return cmd
+}
+
+func newAIListCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List available AI providers and their default models",
+		Run: func(_ *cobra.Command, _ []string) {
+			fmt.Println("Available AI providers:\n")
+			fmt.Printf("  %-12s  %-22s  %s\n", "PROVIDER", "DEFAULT MODEL", "ENV VAR")
+			fmt.Printf("  %-12s  %-22s  %s\n", "--------", "-------------", "-------")
+			fmt.Printf("  %-12s  %-22s  %s\n", "anthropic", "claude-opus-4-6", "ANTHROPIC_API_KEY")
+			fmt.Printf("  %-12s  %-22s  %s\n", "openai", "gpt-4o", "OPENAI_API_KEY")
+			fmt.Printf("  %-12s  %-22s  %s\n", "template", "(no API)", "-")
+			fmt.Printf("  %-12s  %-22s  %s\n", "noop", "(no API)", "-")
+			fmt.Println("\nUsage:")
+			fmt.Println("  codegen ai fill --provider anthropic --schema system-gen.yaml")
+			fmt.Println("  codegen ai fill --provider openai    --schema system-gen.yaml")
+			fmt.Println("\nOr set provider in system-gen.yaml:")
+			fmt.Println("  ai_provider:")
+			fmt.Println("    name: openai")
+			fmt.Println("    model: gpt-4o")
+			fmt.Println("    api_key_env: MY_OPENAI_KEY")
+		},
+	}
 }
 
 type aiFillFlags struct {
@@ -59,7 +84,7 @@ Requires ANTHROPIC_API_KEY env variable when using the anthropic provider.`,
 
 	cmd.Flags().StringVarP(&f.schemaPath, "schema", "s", "system-gen.yaml", "path to the requirements YAML file")
 	cmd.Flags().StringVarP(&f.outputDir, "output", "o", "", "root output directory (overrides schema output_dir)")
-	cmd.Flags().StringVar(&f.provider, "provider", "anthropic", "AI provider: anthropic | openai | ollama")
+	cmd.Flags().StringVar(&f.provider, "provider", "anthropic", "AI provider: anthropic | openai | template | noop")
 	cmd.Flags().StringVar(&f.model, "model", "", "model override (e.g. claude-opus-4-6)")
 	cmd.Flags().BoolVar(&f.dryRun, "dry-run", false, "print generated code without writing to disk")
 
@@ -136,17 +161,23 @@ func runAIFill(ctx context.Context, f *aiFillFlags) error {
 }
 
 func resolveProvider(name, modelOverride string, s *schema.Schema) (ai.BusinessLogicProvider, error) {
+	// Merge schema-level config with flag overrides (flags win)
+	var schemaModel, schemaKeyEnv string
+	if s.AIProvider != nil {
+		schemaModel = s.AIProvider.Model
+		schemaKeyEnv = s.AIProvider.ApiKeyEnv
+	}
+
+	model := modelOverride
+	if model == "" {
+		model = schemaModel
+	}
+
 	switch name {
 	case "anthropic":
-		model := modelOverride
-		apiKeyEnv := ""
-		if s.AIProvider != nil {
-			if model == "" {
-				model = s.AIProvider.Model
-			}
-			apiKeyEnv = s.AIProvider.ApiKeyEnv
-		}
-		return ai.AnthropicProvider{Model: model, ApiKeyEnv: apiKeyEnv}, nil
+		return ai.AnthropicProvider{Model: model, ApiKeyEnv: schemaKeyEnv}, nil
+	case "openai":
+		return ai.OpenAIProvider{Model: model, ApiKeyEnv: schemaKeyEnv}, nil
 	default:
 		return ai.Get(name)
 	}

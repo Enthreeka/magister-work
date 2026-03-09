@@ -11,6 +11,7 @@ var (
 		"noop":      NoopProvider{},
 		"template":  TemplateProvider{},
 		"anthropic": AnthropicProvider{},
+		"openai":    OpenAIProvider{},
 	}
 )
 
