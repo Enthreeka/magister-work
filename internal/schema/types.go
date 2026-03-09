@@ -67,6 +67,7 @@ type FeatureFlag struct {
 
 // AIProvider selects the business-logic generation backend (future).
 type AIProvider struct {
-	Name  string `yaml:"name"`            // anthropic | openai | ollama | noop
-	Model string `yaml:"model,omitempty"` // e.g. claude-opus-4-6
+	Name      string `yaml:"name"`                // anthropic | openai | ollama | noop
+	Model     string `yaml:"model,omitempty"`     // e.g. claude-opus-4-6
+	ApiKeyEnv string `yaml:"api_key_env,omitempty"` // env var name holding the API key, e.g. MY_ANTHROPIC_KEY
 }

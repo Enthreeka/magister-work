@@ -43,6 +43,17 @@ func (NativeStrategy) Files(s *schema.Schema, opts Options) ([]generator.File, e
 	}, nil
 }
 
+// snakeToCamel converts snake_case to CamelCase: user_create → UserCreate.
+func snakeToCamel(s string) string {
+	parts := strings.Split(s, "_")
+	for i, p := range parts {
+		if len(p) > 0 {
+			parts[i] = strings.ToUpper(p[:1]) + p[1:]
+		}
+	}
+	return strings.Join(parts, "")
+}
+
 // operationToMethod converts a YAML operation to a Go method name.
 func operationToMethod(op string) string {
 	m := map[string]string{
@@ -59,7 +70,7 @@ func operationToMethod(op string) string {
 
 func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 	domain := strings.ToLower(s.Domain)
-	domainTitle := strings.Title(domain)
+	domainTitle := snakeToCamel(domain) // user_create → UserCreate
 	method := operationToMethod(s.Repository.Operation)
 	repoType := domainTitle + "Repository"
 	reqType := domainTitle + "Request"

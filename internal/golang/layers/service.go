@@ -42,7 +42,7 @@ func (l ServiceLayer) Generate(ctx context.Context, data *gen.TemplateData) ([]g
 	if provider == nil {
 		provider = ai.TemplateProvider{}
 	}
-	methodBody, err := provider.GenerateMethodBody(ctx, buildMethodRequest(data, s))
+	methodBody, err := provider.GenerateMethodBody(ctx, BuildMethodRequest(data, s))
 	if err != nil {
 		return nil, fmt.Errorf("service layer: method body: %w", err)
 	}
@@ -119,7 +119,9 @@ func serviceDescription(s *schema.Schema) string {
 	return ""
 }
 
-func buildMethodRequest(data *gen.TemplateData, s *schema.Schema) ai.MethodRequest {
+// BuildMethodRequest constructs an ai.MethodRequest from template data and schema.
+// Exported so the CLI ai fill command can reuse it without duplicating logic.
+func BuildMethodRequest(data *gen.TemplateData, s *schema.Schema) ai.MethodRequest {
 	domainTitle := data.DomainTitle
 
 	// Collect required fields with their Go types
@@ -140,6 +142,7 @@ func buildMethodRequest(data *gen.TemplateData, s *schema.Schema) ai.MethodReque
 		Operation:           s.Repository.Operation,
 		Description:         serviceDescription(s),
 		RequiredFields:      required,
+		DomainErrDomain:     "domain.Err" + domainTitle + "Domain",
 		DomainErrValidation: "domain.Err" + domainTitle + "Validation",
 		DomainErrInternal:   "domain.Err" + domainTitle + "Internal",
 		DomainErrNotFound:   "domain.Err" + domainTitle + "NotFound",

@@ -42,12 +42,22 @@
         "name": "name",
         "type": "string",
         "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": true
       }
     ],
     "output": [
       {
         "name": "id",
         "type": "uuid",
+        "required": false
+      },
+      {
+        "name": "created_at",
+        "type": "time.Time",
         "required": false
       }
     ],

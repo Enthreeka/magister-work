@@ -32,6 +32,7 @@ Supported repository strategies: native (pgx/sqlx), sqlc (generate/existing).`,
 		newGenerateCmd(),
 		newValidateCmd(),
 		newDiffCmd(),
+		newAICmd(),
 		newVersionCmd(),
 	)
 

@@ -31,6 +31,16 @@ repository:
   operation: insert
   fields: [name, email]
 
+ai_provider:
+  name: anthropic
+  model: claude-opus-4-6
+
+service:
+  description: >
+    Создать нового пользователя. Проверить уникальность email —
+    если пользователь с таким email уже существует, вернуть ErrUserDomain.
+    После успешного создания вызвать s.repo.Create и вернуть результат.
+
 generate:
   layers:
     - domain

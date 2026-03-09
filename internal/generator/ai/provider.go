@@ -43,6 +43,7 @@ type MethodRequest struct {
 	RequiredFields []FieldInfo
 
 	// Domain error identifiers for use in generated error wrapping.
+	DomainErrDomain     string // e.g. "domain.ErrUserDomain"
 	DomainErrValidation string // e.g. "domain.ErrUserValidation"
 	DomainErrInternal   string // e.g. "domain.ErrUserInternal"
 	DomainErrNotFound   string // e.g. "domain.ErrUserNotFound"
