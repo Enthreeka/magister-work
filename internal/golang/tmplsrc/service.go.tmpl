@@ -1,0 +1,22 @@
+{{ .Header }}package service
+
+import (
+	"context"
+
+	"{{ .Module }}/internal/{{ .Domain }}/gen/domain"
+)
+
+// {{ .ServiceType }} implements domain.{{ .ServiceType }}Iface.
+type {{ .ServiceType }} struct {
+	repo domain.{{ .RepoType }}
+}
+
+// New{{ .ServiceType }} creates a new {{ .ServiceType }} with the given repository.
+func New{{ .ServiceType }}(repo domain.{{ .RepoType }}) *{{ .ServiceType }} {
+	return &{{ .ServiceType }}{repo: repo}
+}
+
+// {{ .OperationMethod }} implements the {{ .DomainTitle }} business logic.
+func (s *{{ .ServiceType }}) {{ .OperationMethod }}(ctx context.Context, req *domain.{{ .RequestType }}) (*domain.{{ .ResponseType }}, error) {
+{{ .MethodBody }}
+}

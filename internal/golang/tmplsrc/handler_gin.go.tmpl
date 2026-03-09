@@ -1,0 +1,46 @@
+{{ .Header }}package handler
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"{{ .Module }}/internal/{{ .Domain }}/gen/domain"
+)
+
+// {{ .HandlerType }} handles HTTP requests for the {{ .DomainTitle }} vertical slice.
+type {{ .HandlerType }} struct {
+	svc domain.{{ .ServiceType }}Iface
+}
+
+// New{{ .HandlerType }} creates a new {{ .HandlerType }}.
+func New{{ .HandlerType }}(svc domain.{{ .ServiceType }}Iface) *{{ .HandlerType }} {
+	return &{{ .HandlerType }}{svc: svc}
+}
+
+// Register mounts the handler routes onto the provided RouterGroup.
+func (h *{{ .HandlerType }}) Register(r *gin.RouterGroup) {
+	r.{{ ToUpper .Transport.Method }}("{{ .Transport.URL }}", h.handle)
+}
+
+func (h *{{ .HandlerType }}) handle(c *gin.Context) {
+{{ .BindingBlock }}
+	resp, err := h.svc.{{ .OperationMethod }}(c.Request.Context(), &req)
+	if err != nil {
+		h.handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *{{ .HandlerType }}) handleError(c *gin.Context, err error) {
+	switch {
+	case errors.Is(err, domain.Err{{ .DomainTitle }}NotFound):
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	case errors.Is(err, domain.Err{{ .DomainTitle }}Validation):
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case errors.Is(err, domain.Err{{ .DomainTitle }}Domain):
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	}
+}

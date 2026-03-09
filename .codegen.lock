@@ -1,0 +1,34 @@
+{
+  "user": {
+    "domain": "user",
+    "transport": {
+      "method": "POST",
+      "url": "/api/v1/users"
+    },
+    "input": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "required": false
+      },
+      {
+        "name": "created_at",
+        "type": "time.Time",
+        "required": false
+      }
+    ],
+    "operation": "insert"
+  }
+}

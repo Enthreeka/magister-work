@@ -1,0 +1,40 @@
+version: "1"
+module: github.com/example/app
+domain: user
+
+transport:
+  framework: gin
+  method: POST
+  url: /api/v1/users
+
+input:
+  - name: name
+    type: string
+    source: body
+    required: true
+  - name: email
+    type: string
+    source: body
+    required: true
+
+output:
+  - name: id
+    type: uuid
+  - name: created_at
+    type: time.Time
+
+repository:
+  strategy: native
+  driver: pgx
+  table: users
+  schema: public
+  operation: insert
+  fields: [name, email]
+
+generate:
+  layers:
+    - domain
+    - repository
+    - service
+    - handler
+  output_dir: internal/{{.Domain}}
