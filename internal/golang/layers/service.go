@@ -49,7 +49,7 @@ func (l ServiceLayer) Generate(ctx context.Context, data *gen.TemplateData) ([]g
 		return nil, err
 	}
 
-	path := filepath.Join(expandDir(data), "gen", "service.gen.go")
+	path := filepath.Join(expandDir(data), "service", "service.gen.go")
 
 	return []generator.File{
 		{Path: path, Content: []byte(content), Protected: true},
@@ -61,6 +61,7 @@ type serviceTmplData struct {
 	Module          string
 	Domain          string
 	DomainTitle     string
+	DomainImport    string // full import path: module/outputDir/domain
 	RequestType     string
 	ResponseType    string
 	RepoType        string
@@ -75,6 +76,7 @@ func renderService(data *gen.TemplateData, methodBody string) (string, error) {
 		Module:          data.Module,
 		Domain:          data.Domain,
 		DomainTitle:     data.DomainTitle,
+		DomainImport:    data.Module + "/" + expandDir(data) + "/domain",
 		RequestType:     data.RequestType,
 		ResponseType:    data.ResponseType,
 		RepoType:        data.RepoType,

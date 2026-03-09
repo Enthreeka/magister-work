@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	"time"
-	"github.com/example/app/internal/user/gen/domain"
+	"github.com/example/app/internal/user/domain"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

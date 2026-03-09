@@ -31,10 +31,7 @@ func (DomainLayer) Generate(_ context.Context, data *gen.TemplateData) ([]genera
 		return nil, err
 	}
 
-	path := filepath.Join(
-		expandDir(data),
-		"gen", "domain.gen.go",
-	)
+	path := filepath.Join(expandDir(data), "domain", "domain.gen.go")
 
 	return []generator.File{
 		{Path: path, Content: []byte(content), Protected: true},

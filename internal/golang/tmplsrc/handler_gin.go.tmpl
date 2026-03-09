@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"{{ .Module }}/internal/{{ .Domain }}/gen/domain"
+	"errors"
+
+	"{{ .DomainImport }}"
 )
 
 // {{ .HandlerType }} handles HTTP requests for the {{ .DomainTitle }} vertical slice.

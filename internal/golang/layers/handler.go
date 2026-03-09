@@ -30,7 +30,7 @@ func (HandlerLayer) Generate(_ context.Context, data *gen.TemplateData) ([]gener
 		return nil, err
 	}
 
-	path := filepath.Join(expandDir(data), "gen", "handler.gen.go")
+	path := filepath.Join(expandDir(data), "handler", "handler.gen.go")
 
 	return []generator.File{
 		{Path: path, Content: []byte(content), Protected: true},
@@ -42,6 +42,7 @@ type handlerTmplData struct {
 	Module          string
 	Domain          string
 	DomainTitle     string
+	DomainImport    string // full import path: module/outputDir/domain
 	RequestType     string
 	ResponseType    string
 	ServiceType     string
@@ -62,6 +63,7 @@ func renderHandler(data *gen.TemplateData, s *schema.Schema) (string, error) {
 		Module:          data.Module,
 		Domain:          data.Domain,
 		DomainTitle:     data.DomainTitle,
+		DomainImport:    data.Module + "/" + expandDir(data) + "/domain",
 		RequestType:     data.RequestType,
 		ResponseType:    data.ResponseType,
 		ServiceType:     data.ServiceType,

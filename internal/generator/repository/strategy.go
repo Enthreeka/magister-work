@@ -12,10 +12,11 @@ import (
 
 // Options carries generation-time settings forwarded from the engine.
 type Options struct {
-	OutputDir  string
-	SourceFile string
-	Version    string
-	DryRun     bool
+	OutputDir    string
+	SourceFile   string
+	Version      string
+	DryRun       bool
+	DomainImport string // full Go import path for the domain package
 }
 
 // RepositoryContract describes the interface that the service and handler

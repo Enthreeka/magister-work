@@ -37,7 +37,7 @@ func (NativeStrategy) Files(s *schema.Schema, opts Options) ([]generator.File, e
 		return nil, fmt.Errorf("native repository: %w", err)
 	}
 
-	path := filepath.Join(strings.TrimRight(opts.OutputDir, "/"), "gen", "repository.gen.go")
+	path := filepath.Join(strings.TrimRight(opts.OutputDir, "/"), "repository", "repository.gen.go")
 
 	return []generator.File{
 		{Path: path, Content: []byte(content), Protected: true},
@@ -65,7 +65,6 @@ func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 	repoType := domainTitle + "Repository"
 	reqType := domainTitle + "Request"
 	respType := domainTitle + "Response"
-	module := s.Module
 
 	// Gather all field types to determine required imports
 	var allTypes []string
@@ -89,7 +88,7 @@ func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 	if typemap.NeedsTimeImport(allTypes) {
 		sb.WriteString("\t\"time\"\n")
 	}
-	sb.WriteString(fmt.Sprintf("\t\"%s/internal/%s/gen/domain\"\n", module, domain))
+	sb.WriteString(fmt.Sprintf("\t%q\n", opts.DomainImport))
 
 	switch strings.ToLower(s.Repository.Driver) {
 	case "pgx":

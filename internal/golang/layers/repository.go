@@ -24,9 +24,10 @@ func (l RepositoryLayer) Generate(ctx context.Context, data *gen.TemplateData) (
 	}
 
 	opts := repostrategy.Options{
-		OutputDir:  expandDir(data),
-		SourceFile: data.SourceFile,
-		Version:    data.Version,
+		OutputDir:    expandDir(data),
+		SourceFile:   data.SourceFile,
+		Version:      data.Version,
+		DomainImport: data.Module + "/" + expandDir(data) + "/domain",
 	}
 
 	if err := l.Strategy.Prepare(ctx, s, opts); err != nil {

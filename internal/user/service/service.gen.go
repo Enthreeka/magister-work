@@ -7,7 +7,7 @@ package service
 import (
 	"context"
 
-	"github.com/example/app/internal/user/gen/domain"
+	"github.com/example/app/internal/user/domain"
 )
 
 // UserService implements domain.UserServiceIface.

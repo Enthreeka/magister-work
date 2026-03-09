@@ -8,7 +8,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/example/app/internal/user/gen/domain"
+	"errors"
+
+	"github.com/example/app/internal/user/domain"
 )
 
 // UserHandler handles HTTP requests for the User vertical slice.
