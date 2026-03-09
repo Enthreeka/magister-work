@@ -30,7 +30,7 @@ func NewEngine(repoStrategy repostrategy.Strategy, aiProvider ai.BusinessLogicPr
 // outputDir is the resolved ({{.Domain}}-expanded) output directory.
 func BuildTemplateData(s *schema.Schema, sourceFile, version string) *generator.TemplateData {
 	domain := strings.ToLower(s.Domain)
-	domainTitle := strings.Title(domain)
+	domainTitle := snakeToCamel(domain) // user_create → UserCreate
 	method := operationToMethod(s.Repository.Operation)
 
 	return &generator.TemplateData{
@@ -51,6 +51,17 @@ func BuildTemplateData(s *schema.Schema, sourceFile, version string) *generator.
 		Repository:      s, // layers receive the full schema
 		Service:         s.Service,
 	}
+}
+
+// snakeToCamel converts snake_case to CamelCase: user_create → UserCreate.
+func snakeToCamel(s string) string {
+	parts := strings.Split(s, "_")
+	for i, p := range parts {
+		if len(p) > 0 {
+			parts[i] = strings.ToUpper(p[:1]) + p[1:]
+		}
+	}
+	return strings.Join(parts, "")
 }
 
 func operationToMethod(op string) string {

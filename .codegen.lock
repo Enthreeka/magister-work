@@ -30,5 +30,27 @@
       }
     ],
     "operation": "insert"
+  },
+  "user_create": {
+    "domain": "user_create",
+    "transport": {
+      "method": "POST",
+      "url": "/api/v1/users"
+    },
+    "input": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "required": false
+      }
+    ],
+    "operation": "insert"
   }
 }

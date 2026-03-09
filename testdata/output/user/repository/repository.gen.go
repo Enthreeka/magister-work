@@ -7,7 +7,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"time"
 	"github.com/example/app/testdata/output/user/domain"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

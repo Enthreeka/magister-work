@@ -8,7 +8,6 @@ import (
 
 	"github.com/Enthreeka/magister-work/internal/generator"
 	"github.com/Enthreeka/magister-work/internal/schema"
-	"github.com/Enthreeka/magister-work/pkg/typemap"
 )
 
 // NativeStrategy generates repository code directly without external tools.
@@ -85,9 +84,6 @@ func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 	sb.WriteString("import (\n")
 	sb.WriteString("\t\"context\"\n")
 	sb.WriteString("\t\"fmt\"\n")
-	if typemap.NeedsTimeImport(allTypes) {
-		sb.WriteString("\t\"time\"\n")
-	}
 	sb.WriteString(fmt.Sprintf("\t%q\n", opts.DomainImport))
 
 	switch strings.ToLower(s.Repository.Driver) {
