@@ -1,21 +1,27 @@
 {{ .Header }}package handler
 
 import (
+	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"errors"
-
 	"{{ .DomainImport }}"
 )
 
+// {{ .ServiceType }}Iface is the contract handler requires from the service layer.
+// The service must implement this interface — checked at compile time in main.
+type {{ .ServiceType }}Iface interface {
+	{{ .OperationMethod }}(ctx context.Context, req *domain.{{ .RequestType }}) (*domain.{{ .ResponseType }}, error)
+}
+
 // {{ .HandlerType }} handles HTTP requests for the {{ .DomainTitle }} vertical slice.
 type {{ .HandlerType }} struct {
-	svc domain.{{ .ServiceType }}Iface
+	svc {{ .ServiceType }}Iface
 }
 
 // New{{ .HandlerType }} creates a new {{ .HandlerType }}.
-func New{{ .HandlerType }}(svc domain.{{ .ServiceType }}Iface) *{{ .HandlerType }} {
+func New{{ .HandlerType }}(svc {{ .ServiceType }}Iface) *{{ .HandlerType }} {
 	return &{{ .HandlerType }}{svc: svc}
 }
 

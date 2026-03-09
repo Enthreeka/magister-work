@@ -40,13 +40,10 @@ func (DomainLayer) Generate(_ context.Context, data *gen.TemplateData) ([]genera
 
 type domainTmplData struct {
 	Header          string
-	Module          string
 	Domain          string
 	DomainTitle     string
 	RequestType     string
 	ResponseType    string
-	RepoType        string
-	ServiceType     string
 	OperationMethod string
 	NeedsTime       bool
 	Input           []schema.Field
@@ -58,13 +55,10 @@ func renderDomain(data *gen.TemplateData, s *schema.Schema) (string, error) {
 
 	td := domainTmplData{
 		Header:          gen.Header(data.SourceFile, data.Version),
-		Module:          data.Module,
 		Domain:          data.Domain,
 		DomainTitle:     data.DomainTitle,
 		RequestType:     data.RequestType,
 		ResponseType:    data.ResponseType,
-		RepoType:        data.RepoType,
-		ServiceType:     data.ServiceType,
 		OperationMethod: data.OperationMethod,
 		NeedsTime:       typemap.NeedsTimeImport(allTypes),
 		Input:           s.Input,

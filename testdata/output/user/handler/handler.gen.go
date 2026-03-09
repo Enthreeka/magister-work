@@ -5,21 +5,27 @@
 package handler
 
 import (
+	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"errors"
-
-	"github.com/example/app/internal/user/domain"
+	"github.com/example/app/testdata/output/user/domain"
 )
+
+// UserServiceIface is the contract handler requires from the service layer.
+// The service must implement this interface — checked at compile time in main.
+type UserServiceIface interface {
+	Create(ctx context.Context, req *domain.UserRequest) (*domain.UserResponse, error)
+}
 
 // UserHandler handles HTTP requests for the User vertical slice.
 type UserHandler struct {
-	svc domain.UserServiceIface
+	svc UserServiceIface
 }
 
 // NewUserHandler creates a new UserHandler.
-func NewUserHandler(svc domain.UserServiceIface) *UserHandler {
+func NewUserHandler(svc UserServiceIface) *UserHandler {
 	return &UserHandler{svc: svc}
 }
 

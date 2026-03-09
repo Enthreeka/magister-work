@@ -5,31 +5,20 @@
 package domain
 
 import (
-	"context"
 	"errors"
 	"time"
 )
 
 // UserRequest is the input for the Create operation.
 type UserRequest struct {
-Name string `json:"name" binding:"required"`
-Email string `json:"email" binding:"required"`
+	Name string `json:"name" binding:"required"`
+	Email string `json:"email" binding:"required"`
 }
 
 // UserResponse is the output for the Create operation.
 type UserResponse struct {
-Id string `json:"id"`
-CreatedAt time.Time `json:"created_at"`
-}
-
-// UserRepository defines the storage contract for User.
-type UserRepository interface {
-	Create(ctx context.Context, req *UserRequest) (*UserResponse, error)
-}
-
-// UserServiceIface defines the business-logic contract for User.
-type UserServiceIface interface {
-	Create(ctx context.Context, req *UserRequest) (*UserResponse, error)
+	Id string `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // Domain errors returned by the User vertical slice.

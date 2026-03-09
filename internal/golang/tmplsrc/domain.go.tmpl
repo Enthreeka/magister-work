@@ -1,33 +1,20 @@
 {{ .Header }}package domain
 
 import (
-	"context"
 	"errors"
 {{ if .NeedsTime }}	"time"
 {{ end }})
 
 // {{ .RequestType }} is the input for the {{ .OperationMethod }} operation.
 type {{ .RequestType }} struct {
-{{ range .Input -}}
-	{{ ToCamel .Name }} {{ ToGoType .Type }} `json:"{{ .Name }}"{{ if .Required }} binding:"required"{{ end }}`
+{{ range .Input }}	{{ ToCamel .Name }} {{ ToGoType .Type }} `json:"{{ .Name }}"{{ if .Required }} binding:"required"{{ end }}`
 {{ end -}}
 }
 
 // {{ .ResponseType }} is the output for the {{ .OperationMethod }} operation.
 type {{ .ResponseType }} struct {
-{{ range .Output -}}
-	{{ ToCamel .Name }} {{ ToGoType .Type }} `json:"{{ .Name }}"`
+{{ range .Output }}	{{ ToCamel .Name }} {{ ToGoType .Type }} `json:"{{ .Name }}"`
 {{ end -}}
-}
-
-// {{ .RepoType }} defines the storage contract for {{ .DomainTitle }}.
-type {{ .RepoType }} interface {
-	{{ .OperationMethod }}(ctx context.Context, req *{{ .RequestType }}) (*{{ .ResponseType }}, error)
-}
-
-// {{ .ServiceType }}Iface defines the business-logic contract for {{ .DomainTitle }}.
-type {{ .ServiceType }}Iface interface {
-	{{ .OperationMethod }}(ctx context.Context, req *{{ .RequestType }}) (*{{ .ResponseType }}, error)
 }
 
 // Domain errors returned by the {{ .DomainTitle }} vertical slice.

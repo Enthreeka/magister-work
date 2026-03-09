@@ -10,5 +10,8 @@ var DomainTemplate string
 //go:embed service.go.tmpl
 var ServiceTemplate string
 
+//go:embed service_stub.go.tmpl
+var ServiceStubTemplate string
+
 //go:embed handler_gin.go.tmpl
 var HandlerGinTemplate string

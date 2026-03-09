@@ -37,4 +37,4 @@ generate:
     - repository
     - service
     - handler
-  output_dir: internal/{{.Domain}}
+  output_dir: testdata/output/{{.Domain}}

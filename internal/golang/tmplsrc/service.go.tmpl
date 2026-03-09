@@ -6,17 +6,18 @@ import (
 	"{{ .DomainImport }}"
 )
 
-// {{ .ServiceType }} implements domain.{{ .ServiceType }}Iface.
+// {{ .RepoType }}Iface is the contract service requires from the repository layer.
+// The repository must implement this interface — checked at compile time in main.
+type {{ .RepoType }}Iface interface {
+	{{ .OperationMethod }}(ctx context.Context, req *domain.{{ .RequestType }}) (*domain.{{ .ResponseType }}, error)
+}
+
+// {{ .ServiceType }} contains the business logic for {{ .DomainTitle }}.
 type {{ .ServiceType }} struct {
-	repo domain.{{ .RepoType }}
+	repo {{ .RepoType }}Iface
 }
 
-// New{{ .ServiceType }} creates a new {{ .ServiceType }} with the given repository.
-func New{{ .ServiceType }}(repo domain.{{ .RepoType }}) *{{ .ServiceType }} {
+// New{{ .ServiceType }} creates a new {{ .ServiceType }}.
+func New{{ .ServiceType }}(repo {{ .RepoType }}Iface) *{{ .ServiceType }} {
 	return &{{ .ServiceType }}{repo: repo}
-}
-
-// {{ .OperationMethod }} implements the {{ .DomainTitle }} business logic.
-func (s *{{ .ServiceType }}) {{ .OperationMethod }}(ctx context.Context, req *domain.{{ .RequestType }}) (*domain.{{ .ResponseType }}, error) {
-{{ .MethodBody }}
 }

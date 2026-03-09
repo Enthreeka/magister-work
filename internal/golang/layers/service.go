@@ -14,10 +14,10 @@ import (
 	"github.com/Enthreeka/magister-work/internal/schema"
 )
 
-// ServiceLayer generates the service (business-logic) layer.
+// ServiceLayer generates two files:
+//   - service.gen.go  (Protected=true)  — struct, constructor, compile-time interface check
+//   - service.go      (Protected=false) — method stubs; created once, never overwritten
 type ServiceLayer struct {
-	// AIProvider is used to generate method bodies.
-	// Defaults to NoopProvider if nil.
 	AIProvider ai.BusinessLogicProvider
 }
 
@@ -29,30 +29,48 @@ func (l ServiceLayer) Generate(ctx context.Context, data *gen.TemplateData) ([]g
 		return nil, fmt.Errorf("service layer: expected *schema.Schema in data.Repository")
 	}
 
+	td := buildServiceTmplData(data)
+
+	// 1. Generated scaffold (DO NOT EDIT)
+	genContent, err := renderTemplate("service", tmplsrc.ServiceTemplate, td)
+	if err != nil {
+		return nil, fmt.Errorf("service layer: scaffold: %w", err)
+	}
+
+	// 2. User stub (created once, never overwritten)
 	provider := l.AIProvider
 	if provider == nil {
 		provider = ai.NoopProvider{}
 	}
-
-	body, err := provider.GenerateMethodBody(ctx, ai.MethodRequest{
+	methodBody, err := provider.GenerateMethodBody(ctx, ai.MethodRequest{
 		MethodName:  data.OperationMethod,
 		InputType:   "domain." + data.RequestType,
 		OutputType:  "domain." + data.ResponseType,
 		Description: serviceDescription(s),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("service layer: generate method body: %w", err)
+		return nil, fmt.Errorf("service layer: method body: %w", err)
 	}
+	td.MethodBody = methodBody
 
-	content, err := renderService(data, body)
+	stubContent, err := renderTemplate("service_stub", tmplsrc.ServiceStubTemplate, td)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("service layer: stub: %w", err)
 	}
 
-	path := filepath.Join(expandDir(data), "service", "service.gen.go")
+	dir := filepath.Join(expandDir(data), "service")
 
 	return []generator.File{
-		{Path: path, Content: []byte(content), Protected: true},
+		{
+			Path:      filepath.Join(dir, "service.gen.go"),
+			Content:   []byte(genContent),
+			Protected: true, // always overwritten on regeneration
+		},
+		{
+			Path:      filepath.Join(dir, "service.go"),
+			Content:   []byte(stubContent),
+			Protected: false, // written only if file does not exist yet
+		},
 	}, nil
 }
 
@@ -61,17 +79,17 @@ type serviceTmplData struct {
 	Module          string
 	Domain          string
 	DomainTitle     string
-	DomainImport    string // full import path: module/outputDir/domain
+	DomainImport    string
 	RequestType     string
 	ResponseType    string
 	RepoType        string
 	ServiceType     string
 	OperationMethod string
-	MethodBody      string
+	MethodBody      string // used only by stub template
 }
 
-func renderService(data *gen.TemplateData, methodBody string) (string, error) {
-	td := serviceTmplData{
+func buildServiceTmplData(data *gen.TemplateData) serviceTmplData {
+	return serviceTmplData{
 		Header:          gen.Header(data.SourceFile, data.Version),
 		Module:          data.Module,
 		Domain:          data.Domain,
@@ -82,19 +100,19 @@ func renderService(data *gen.TemplateData, methodBody string) (string, error) {
 		RepoType:        data.RepoType,
 		ServiceType:     data.ServiceType,
 		OperationMethod: data.OperationMethod,
-		MethodBody:      methodBody,
 	}
+}
 
-	tmpl, err := template.New("service").
+func renderTemplate(name, src string, data any) (string, error) {
+	tmpl, err := template.New(name).
 		Funcs(templateFuncs()).
-		Parse(tmplsrc.ServiceTemplate)
+		Parse(src)
 	if err != nil {
-		return "", fmt.Errorf("service layer: parse template: %w", err)
+		return "", fmt.Errorf("parse template %q: %w", name, err)
 	}
-
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, td); err != nil {
-		return "", fmt.Errorf("service layer: execute template: %w", err)
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("execute template %q: %w", name, err)
 	}
 	return buf.String(), nil
 }

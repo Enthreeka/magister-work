@@ -1,0 +1,13 @@
+package service
+
+import (
+	"context"
+
+	"{{ .DomainImport }}"
+)
+
+// {{ .OperationMethod }} implements domain.{{ .ServiceType }}Iface.
+// TODO: replace with your business logic.
+func (s *{{ .ServiceType }}) {{ .OperationMethod }}(ctx context.Context, req *domain.{{ .RequestType }}) (*domain.{{ .ResponseType }}, error) {
+	panic("not implemented: {{ .OperationMethod }}")
+}
