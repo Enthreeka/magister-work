@@ -12,7 +12,8 @@ import (
 const defaultOpenAIModel  = "gpt-4o"
 const defaultOpenAIKeyEnv = "OPENAI_API_KEY"
 
-// OpenAIProvider generates business logic using the OpenAI API.
+// OpenAIProvider generates business logic using the OpenAI-compatible API.
+// Works with OpenAI, OpenRouter, or any other OpenAI-compatible endpoint.
 // API key is read from the env variable specified in ApiKeyEnv (default: OPENAI_API_KEY).
 type OpenAIProvider struct {
 	// Model overrides the default model.
@@ -21,6 +22,10 @@ type OpenAIProvider struct {
 	// ApiKeyEnv is the name of the environment variable holding the API key.
 	// Defaults to OPENAI_API_KEY if empty.
 	ApiKeyEnv string
+	// BaseURL overrides the API base URL.
+	// Use https://openrouter.ai/api/v1 for OpenRouter.
+	// Defaults to the official OpenAI endpoint if empty.
+	BaseURL string
 }
 
 func (p OpenAIProvider) Name() string { return "openai" }
@@ -41,10 +46,14 @@ func (p OpenAIProvider) GenerateMethodBody(ctx context.Context, req MethodReques
 		model = defaultOpenAIModel
 	}
 
-	client := openai.NewClient(option.WithAPIKey(apiKey))
+	opts := []option.RequestOption{option.WithAPIKey(apiKey)}
+	if p.BaseURL != "" {
+		opts = append(opts, option.WithBaseURL(p.BaseURL))
+	}
+	client := openai.NewClient(opts...)
 
 	resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-		Model: openai.ChatModel(model),
+		Model: model,
 		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(systemPrompt()),
 			openai.UserMessage(buildUserPrompt(req)),

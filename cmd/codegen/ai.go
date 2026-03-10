@@ -35,16 +35,23 @@ func newAIListCmd() *cobra.Command {
 		Short: "List available AI providers and their default models",
 		Run: func(_ *cobra.Command, _ []string) {
 			fmt.Println("Available AI providers:\n")
-			fmt.Printf("  %-12s  %-22s  %s\n", "PROVIDER", "DEFAULT MODEL", "ENV VAR")
-			fmt.Printf("  %-12s  %-22s  %s\n", "--------", "-------------", "-------")
-			fmt.Printf("  %-12s  %-22s  %s\n", "anthropic", "claude-opus-4-6", "ANTHROPIC_API_KEY")
-			fmt.Printf("  %-12s  %-22s  %s\n", "openai", "gpt-4o", "OPENAI_API_KEY")
-			fmt.Printf("  %-12s  %-22s  %s\n", "template", "(no API)", "-")
-			fmt.Printf("  %-12s  %-22s  %s\n", "noop", "(no API)", "-")
+			fmt.Printf("  %-12s  %-30s  %s\n", "PROVIDER", "DEFAULT MODEL", "ENV VAR")
+			fmt.Printf("  %-12s  %-30s  %s\n", "--------", "-------------", "-------")
+			fmt.Printf("  %-12s  %-30s  %s\n", "anthropic", "claude-opus-4-6", "ANTHROPIC_API_KEY")
+			fmt.Printf("  %-12s  %-30s  %s\n", "openai", "gpt-4o", "OPENAI_API_KEY")
+			fmt.Printf("  %-12s  %-30s  %s\n", "openrouter", "openai/gpt-4o", "OPENROUTER_API_KEY")
+			fmt.Printf("  %-12s  %-30s  %s\n", "template", "(no API)", "-")
+			fmt.Printf("  %-12s  %-30s  %s\n", "noop", "(no API)", "-")
 			fmt.Println("\nUsage:")
-			fmt.Println("  codegen ai fill --provider anthropic --schema system-gen.yaml")
-			fmt.Println("  codegen ai fill --provider openai    --schema system-gen.yaml")
-			fmt.Println("\nOr set provider in system-gen.yaml:")
+			fmt.Println("  codegen ai fill --provider anthropic  --schema system-gen.yaml")
+			fmt.Println("  codegen ai fill --provider openai     --schema system-gen.yaml")
+			fmt.Println("  codegen ai fill --provider openrouter --schema system-gen.yaml")
+			fmt.Println("\nOpenRouter example (system-gen.yaml):")
+			fmt.Println("  ai_provider:")
+			fmt.Println("    name: openrouter")
+			fmt.Println("    model: anthropic/claude-opus-4              # any model from openrouter.ai/models")
+			fmt.Println("    api_key_env: OPENROUTER_API_KEY")
+			fmt.Println("\nOr set any OpenAI-compatible provider:")
 			fmt.Println("  ai_provider:")
 			fmt.Println("    name: openai")
 			fmt.Println("    model: gpt-4o")
@@ -162,10 +169,11 @@ func runAIFill(ctx context.Context, f *aiFillFlags) error {
 
 func resolveProvider(name, modelOverride string, s *schema.Schema) (ai.BusinessLogicProvider, error) {
 	// Merge schema-level config with flag overrides (flags win)
-	var schemaModel, schemaKeyEnv string
+	var schemaModel, schemaKeyEnv, schemaBaseURL string
 	if s.AIProvider != nil {
 		schemaModel = s.AIProvider.Model
 		schemaKeyEnv = s.AIProvider.ApiKeyEnv
+		schemaBaseURL = s.AIProvider.BaseURL
 	}
 
 	model := modelOverride
@@ -177,7 +185,7 @@ func resolveProvider(name, modelOverride string, s *schema.Schema) (ai.BusinessL
 	case "anthropic":
 		return ai.AnthropicProvider{Model: model, ApiKeyEnv: schemaKeyEnv}, nil
 	case "openai":
-		return ai.OpenAIProvider{Model: model, ApiKeyEnv: schemaKeyEnv}, nil
+		return ai.OpenAIProvider{Model: model, ApiKeyEnv: schemaKeyEnv, BaseURL: schemaBaseURL}, nil
 	default:
 		return ai.Get(name)
 	}
