@@ -62,5 +62,42 @@
       }
     ],
     "operation": "insert"
+  },
+  "user_get": {
+    "domain": "user_get",
+    "transport": {
+      "method": "GET",
+      "url": "/api/v1/users/:id"
+    },
+    "input": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "required": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "created_at",
+        "type": "time.Time",
+        "required": false
+      }
+    ],
+    "operation": "select"
   }
 }

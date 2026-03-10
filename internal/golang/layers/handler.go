@@ -53,7 +53,7 @@ type handlerTmplData struct {
 }
 
 func renderHandler(data *gen.TemplateData, s *schema.Schema) (string, error) {
-	binding, err := buildBindingBlock(s)
+	binding, err := buildBindingBlock(data, s)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +89,7 @@ func renderHandler(data *gen.TemplateData, s *schema.Schema) (string, error) {
 
 // buildBindingBlock generates the request-binding code for Gin based on
 // the input field sources (body, query, header, path).
-func buildBindingBlock(s *schema.Schema) (string, error) {
+func buildBindingBlock(data *gen.TemplateData, s *schema.Schema) (string, error) {
 	// Categorise fields by source
 	var bodyFields, queryFields, headerFields, pathFields []schema.Field
 	for _, f := range s.Input {
@@ -106,9 +106,7 @@ func buildBindingBlock(s *schema.Schema) (string, error) {
 	}
 
 	var sb strings.Builder
-	reqType := strings.Title(strings.ToLower(s.Domain)) + "Request"
-
-	sb.WriteString(fmt.Sprintf("\tvar req domain.%s\n", reqType))
+	sb.WriteString(fmt.Sprintf("\tvar req domain.%s\n", data.RequestType))
 
 	// Body binding
 	if len(bodyFields) > 0 {
