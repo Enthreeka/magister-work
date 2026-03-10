@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/Enthreeka/magister-work/internal/generator"
+	"github.com/Enthreeka/magister-work/internal/generator/ai"
 	"github.com/Enthreeka/magister-work/internal/generator/compat"
 	repostrategy "github.com/Enthreeka/magister-work/internal/generator/repository"
 	gogen "github.com/Enthreeka/magister-work/internal/golang"
@@ -87,11 +88,17 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 		return err
 	}
 
-	// 6. Build engine and template data
-	engine := gogen.NewEngine(repoStrat, nil) // nil → NoopProvider
+	// 6. Resolve AI provider
+	aiProvider, err := selectAIProvider(s)
+	if err != nil {
+		return err
+	}
+
+	// 7. Build engine and template data
+	engine := gogen.NewEngine(repoStrat, aiProvider)
 	data := gogen.BuildTemplateData(s, f.schemaPath, version)
 
-	// 7. Resolve layers
+	// 8. Resolve layers
 	var layerList []string
 	if f.layers != "" {
 		layerList = splitTrim(f.layers, ",")
@@ -127,6 +134,26 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 	}
 
 	return nil
+}
+
+func selectAIProvider(s *schema.Schema) (ai.BusinessLogicProvider, error) {
+	if s.AIProvider == nil {
+		return ai.TemplateProvider{}, nil
+	}
+	p, err := ai.Get(strings.ToLower(s.AIProvider.Name))
+	if err != nil {
+		return nil, err
+	}
+	// Providers that support custom model/key config need to be re-instantiated.
+	switch strings.ToLower(s.AIProvider.Name) {
+	case "openrouter":
+		return ai.OpenRouterProvider{Model: s.AIProvider.Model, ApiKeyEnv: s.AIProvider.ApiKeyEnv}, nil
+	case "openai":
+		return ai.OpenAIProvider{Model: s.AIProvider.Model, ApiKeyEnv: s.AIProvider.ApiKeyEnv}, nil
+	case "anthropic":
+		return ai.AnthropicProvider{Model: s.AIProvider.Model, ApiKeyEnv: s.AIProvider.ApiKeyEnv}, nil
+	}
+	return p, nil
 }
 
 func selectStrategy(s *schema.Schema) (repostrategy.Strategy, error) {

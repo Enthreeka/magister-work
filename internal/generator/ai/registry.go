@@ -8,10 +8,11 @@ import (
 var (
 	mu        sync.RWMutex
 	providers = map[string]BusinessLogicProvider{
-		"noop":      NoopProvider{},
-		"template":  TemplateProvider{},
-		"anthropic": AnthropicProvider{},
-		"openai":    OpenAIProvider{},
+		"noop":       NoopProvider{},
+		"template":   TemplateProvider{},
+		"anthropic":  AnthropicProvider{},
+		"openai":     OpenAIProvider{},
+		"openrouter": OpenRouterProvider{},
 	}
 )
 
