@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -89,14 +88,9 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 		return err
 	}
 
-	// 6. Resolve AI provider
-	aiProvider, err := selectAIProvider(s)
-	if err != nil {
-		return err
-	}
-
-	// 7. Build engine and template data
-	engine := gogen.NewEngine(repoStrat, aiProvider)
+	// 6. Build engine and template data
+	// generate always uses TemplateProvider — AI filling is a separate step (codegen ai fill)
+	engine := gogen.NewEngine(repoStrat, ai.TemplateProvider{})
 	data := gogen.BuildTemplateData(s, f.schemaPath, version)
 
 	// 8. Resolve layers
@@ -137,25 +131,6 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 	return nil
 }
 
-func selectAIProvider(s *schema.Schema) (ai.BusinessLogicProvider, error) {
-	if s.AIProvider == nil {
-		return ai.TemplateProvider{}, nil
-	}
-	p, err := ai.Get(strings.ToLower(s.AIProvider.Name))
-	if err != nil {
-		return nil, err
-	}
-	// Providers that support custom model/key config need to be re-instantiated.
-	switch strings.ToLower(s.AIProvider.Name) {
-	case "openrouter":
-		return ai.OpenRouterProvider{Model: s.AIProvider.Model, ApiKeyEnv: s.AIProvider.ApiKeyEnv}, nil
-	case "openai":
-		return ai.OpenAIProvider{Model: s.AIProvider.Model, ApiKeyEnv: s.AIProvider.ApiKeyEnv}, nil
-	case "anthropic":
-		return ai.AnthropicProvider{Model: s.AIProvider.Model, ApiKeyEnv: s.AIProvider.ApiKeyEnv}, nil
-	}
-	return p, nil
-}
 
 func selectStrategy(s *schema.Schema) (repostrategy.Strategy, error) {
 	switch strings.ToLower(s.Repository.Strategy) {
