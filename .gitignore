@@ -1,2 +1,4 @@
 .claude
 *.pdf
+*.pptx
+.idea

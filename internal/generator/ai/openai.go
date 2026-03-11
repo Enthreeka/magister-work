@@ -12,19 +12,19 @@ import (
 const defaultOpenAIModel  = "gpt-4o"
 const defaultOpenAIKeyEnv = "OPENAI_API_KEY"
 
-// OpenAIProvider generates business logic using the OpenAI-compatible API.
-// Works with OpenAI, OpenRouter, or any other OpenAI-compatible endpoint.
-// API key is read from the env variable specified in ApiKeyEnv (default: OPENAI_API_KEY).
+// OpenAIProvider генерирует бизнес-логику с использованием OpenAI-совместимого API.
+// Работает с OpenAI, OpenRouter или любым другим OpenAI-совместимым эндпоинтом.
+// API-ключ читается из переменной окружения, указанной в ApiKeyEnv (по умолчанию: OPENAI_API_KEY).
 type OpenAIProvider struct {
-	// Model overrides the default model.
-	// Defaults to gpt-4o if empty.
+	// Model переопределяет модель по умолчанию.
+	// По умолчанию используется gpt-4o, если пусто.
 	Model string
-	// ApiKeyEnv is the name of the environment variable holding the API key.
-	// Defaults to OPENAI_API_KEY if empty.
+	// ApiKeyEnv — имя переменной окружения, содержащей API-ключ.
+	// По умолчанию OPENAI_API_KEY, если пусто.
 	ApiKeyEnv string
-	// BaseURL overrides the API base URL.
-	// Use https://openrouter.ai/api/v1 for OpenRouter.
-	// Defaults to the official OpenAI endpoint if empty.
+	// BaseURL переопределяет базовый URL API.
+	// Используйте https://openrouter.ai/api/v1 для OpenRouter.
+	// По умолчанию используется официальный эндпоинт OpenAI, если пусто.
 	BaseURL string
 }
 

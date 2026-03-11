@@ -1,6 +1,6 @@
-// Package repository defines the pluggable strategy interface for the
-// repository layer generation. Each strategy decides how repository code
-// is produced: directly by codegen (native) or via an external tool (sqlc).
+// Package repository определяет подключаемый интерфейс стратегии для генерации
+// слоя репозитория. Каждая стратегия решает, как создаётся код репозитория:
+// напрямую через codegen (native) или с помощью внешнего инструмента (sqlc).
 package repository
 
 import (
@@ -10,17 +10,17 @@ import (
 	"github.com/Enthreeka/magister-work/internal/schema"
 )
 
-// Options carries generation-time settings forwarded from the engine.
+// Options содержит параметры времени генерации, переданные от движка.
 type Options struct {
 	OutputDir    string
 	SourceFile   string
 	Version      string
 	DryRun       bool
-	DomainImport string // full Go import path for the domain package
+	DomainImport string // полный путь импорта Go для пакета domain
 }
 
-// RepositoryContract describes the interface that the service and handler
-// layers will depend on. It is derived from the schema regardless of strategy.
+// RepositoryContract описывает интерфейс, от которого зависят слои сервиса и обработчика.
+// Он выводится из схемы независимо от стратегии.
 type RepositoryContract struct {
 	InterfaceName string
 	MethodName    string
@@ -28,22 +28,21 @@ type RepositoryContract struct {
 	OutputType    string
 }
 
-// Strategy is the extension point for repository-layer generation.
-// Implementations must be safe for concurrent use.
+// Strategy — точка расширения для генерации слоя репозитория.
 type Strategy interface {
-	// Name returns the unique identifier of this strategy ("native", "sqlc").
+	// Name возвращает уникальный идентификатор этой стратегии ("native", "sqlc").
 	Name() string
 
-	// Prepare performs any pre-generation steps (e.g. running sqlc generate).
-	// It is called once before Files.
+	// Prepare выполняет подготовительные шаги перед генерацией (например, запуск sqlc generate).
+	// Вызывается один раз перед Files.
 	Prepare(ctx context.Context, s *schema.Schema, opts Options) error
 
-	// Contract derives the repository interface contract from the schema.
-	// The contract is used by service and handler generators.
+	// Contract выводит контракт интерфейса репозитория из схемы.
+	// Контракт используется генераторами сервиса и обработчика.
 	Contract(s *schema.Schema) (*RepositoryContract, error)
 
-	// Files returns the set of files this strategy wants to write.
-	// A nil slice means the strategy delegates file writing to an external
-	// tool (e.g. sqlc) and codegen should not write repository files itself.
+	// Files возвращает набор файлов, которые эта стратегия хочет записать.
+	// Nil-срез означает, что стратегия делегирует запись файлов внешнему
+	// инструменту (например, sqlc), и codegen не должен сам записывать файлы репозитория.
 	Files(s *schema.Schema, opts Options) ([]generator.File, error)
 }

@@ -10,8 +10,8 @@ import (
 	"github.com/Enthreeka/magister-work/internal/schema"
 )
 
-// NativeStrategy generates repository code directly without external tools.
-// Supported drivers: pgx, sqlx.
+// NativeStrategy генерирует код репозитория напрямую без внешних инструментов.
+// Поддерживаемые драйверы: pgx, sqlx.
 type NativeStrategy struct{}
 
 func (NativeStrategy) Name() string { return "native" }
@@ -43,7 +43,7 @@ func (NativeStrategy) Files(s *schema.Schema, opts Options) ([]generator.File, e
 	}, nil
 }
 
-// snakeToCamel converts snake_case to CamelCase: user_create → UserCreate.
+// snakeToCamel преобразует snake_case в CamelCase: user_create → UserCreate.
 func snakeToCamel(s string) string {
 	parts := strings.Split(s, "_")
 	for i, p := range parts {
@@ -54,7 +54,7 @@ func snakeToCamel(s string) string {
 	return strings.Join(parts, "")
 }
 
-// operationToMethod converts a YAML operation to a Go method name.
+// operationToMethod преобразует операцию YAML в имя метода Go.
 func operationToMethod(op string) string {
 	m := map[string]string{
 		"insert": "Create",
@@ -70,13 +70,13 @@ func operationToMethod(op string) string {
 
 func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 	domain := strings.ToLower(s.Domain)
-	domainTitle := snakeToCamel(domain) // user_create → UserCreate
+	domainTitle := snakeToCamel(domain) // user_create → UserCreate (преобразование из snake_case)
 	method := operationToMethod(s.Repository.Operation)
 	repoType := domainTitle + "Repository"
 	reqType := domainTitle + "Request"
 	respType := domainTitle + "Response"
 
-	// Gather all field types to determine required imports
+	// Собираем все типы полей для определения необходимых импортов
 	var allTypes []string
 	for _, f := range s.Input {
 		allTypes = append(allTypes, f.Type)
@@ -87,11 +87,11 @@ func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 
 	var sb strings.Builder
 
-	// Header
+	// Заголовок
 	sb.WriteString(generator.Header(opts.SourceFile, opts.Version))
 	sb.WriteString("package repository\n\n")
 
-	// Imports
+	// Импорты
 	sb.WriteString("import (\n")
 	sb.WriteString("\t\"context\"\n")
 	sb.WriteString("\t\"fmt\"\n")
@@ -105,10 +105,10 @@ func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 	}
 	sb.WriteString(")\n\n")
 
-	// Suppress unused import if time is not actually used in struct fields
+	// Подавляем неиспользуемый импорт, если time фактически не используется в полях структуры
 	_ = allTypes
 
-	// Struct
+	// Структура
 	switch strings.ToLower(s.Repository.Driver) {
 	case "pgx":
 		sb.WriteString(fmt.Sprintf("type %sImpl struct {\n\tdb *pgxpool.Pool\n}\n\n", repoType))
@@ -120,13 +120,13 @@ func buildNativeRepository(s *schema.Schema, opts Options) (string, error) {
 			repoType, repoType, repoType))
 	}
 
-	// Method
+	// Метод
 	sb.WriteString(fmt.Sprintf(
 		"func (r *%sImpl) %s(ctx context.Context, req *domain.%s) (*domain.%s, error) {\n",
 		repoType, method, reqType, respType,
 	))
 
-	// SQL + scan
+	// SQL + сканирование
 	switch strings.ToLower(s.Repository.Operation) {
 	case "insert":
 		sb.WriteString(buildInsert(s, respType))
@@ -258,7 +258,7 @@ func buildDelete(s *schema.Schema) string {
 	return sb.String()
 }
 
-// toCamel converts snake_case to CamelCase.
+// toCamel преобразует snake_case в CamelCase.
 func toCamel(s string) string {
 	parts := strings.Split(s, "_")
 	for i, p := range parts {

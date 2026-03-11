@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// NoopProvider emits a TODO panic stub for every method.
-// It is the default provider and requires no external dependencies.
+// NoopProvider генерирует заглушку с паникой TODO для каждого метода.
+// Является провайдером по умолчанию и не требует внешних зависимостей.
 type NoopProvider struct{}
 
 func (NoopProvider) Name() string { return "noop" }

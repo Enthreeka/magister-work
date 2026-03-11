@@ -16,9 +16,9 @@ var (
 	}
 )
 
-// Register adds a provider to the global registry.
-// It panics if a provider with the same name has already been registered —
-// this mirrors the pattern used by database/sql drivers.
+// Register добавляет провайдера в глобальный реестр.
+// Вызывает панику, если провайдер с таким же именем уже зарегистрирован —
+// аналогично паттерну, используемому драйверами database/sql.
 func Register(p BusinessLogicProvider) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -28,7 +28,7 @@ func Register(p BusinessLogicProvider) {
 	providers[p.Name()] = p
 }
 
-// Get returns a registered provider by name.
+// Get возвращает зарегистрированного провайдера по имени.
 func Get(name string) (BusinessLogicProvider, error) {
 	mu.RLock()
 	defer mu.RUnlock()

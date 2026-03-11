@@ -15,19 +15,19 @@ const (
 	defaultOpenRouterKeyEnv = "OPENROUTER_API_KEY"
 )
 
-// OpenRouterProvider generates business logic via OpenRouter (openrouter.ai).
-// OpenRouter exposes an OpenAI-compatible API, so it reuses the openai-go SDK
-// with a custom base URL.
+// OpenRouterProvider генерирует бизнес-логику через OpenRouter (openrouter.ai).
+// OpenRouter предоставляет OpenAI-совместимый API, поэтому используется SDK openai-go
+// с пользовательским базовым URL.
 //
-// API key is read from the env variable specified in ApiKeyEnv
-// (default: OPENROUTER_API_KEY).
+// API-ключ читается из переменной окружения, указанной в ApiKeyEnv
+// (по умолчанию: OPENROUTER_API_KEY).
 type OpenRouterProvider struct {
-	// Model is the model identifier as listed on openrouter.ai, e.g.:
+	// Model — идентификатор модели, как указано на openrouter.ai, например:
 	//   "openai/gpt-4o", "anthropic/claude-opus-4", "meta-llama/llama-3.1-70b-instruct"
-	// Defaults to "openai/gpt-4o" if empty.
+	// По умолчанию используется "openai/gpt-4o", если пусто.
 	Model string
-	// ApiKeyEnv is the name of the environment variable holding the API key.
-	// Defaults to OPENROUTER_API_KEY if empty.
+	// ApiKeyEnv — имя переменной окружения, содержащей API-ключ.
+	// По умолчанию OPENROUTER_API_KEY, если пусто.
 	ApiKeyEnv string
 }
 

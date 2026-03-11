@@ -35,6 +35,7 @@ go build -o codegen ./cmd/codegen
 mv codegen /usr/local/bin/codegen
 ```
 
+
 ---
 
 ## Быстрый старт

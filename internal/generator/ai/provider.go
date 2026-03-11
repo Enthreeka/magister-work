@@ -1,33 +1,33 @@
-// Package ai defines the interface for pluggable business-logic generation providers.
-// The only built-in provider is NoopProvider which emits a TODO stub.
-// Real AI-backed providers (Anthropic, OpenAI, Ollama) are registered separately
-// and are not implemented yet — this package only establishes the contract.
+// Package ai определяет интерфейс для подключаемых провайдеров генерации бизнес-логики.
+// Единственный встроенный провайдер — NoopProvider, генерирующий заглушку с TODO.
+// Реальные провайдеры на базе ИИ (Anthropic, OpenAI, Ollama) регистрируются отдельно
+// и пока не реализованы — этот пакет только устанавливает контракт.
 package ai
 
 import "context"
 
-// Dependency describes a dependency available to a service method
-// (e.g. a repository, a cache client, an external HTTP service).
+// Dependency описывает зависимость, доступную методу сервиса
+// (например, репозиторий, клиент кэша, внешний HTTP-сервис).
 type Dependency struct {
 	Name string
 	Type string
 }
 
-// Example is an optional input/output pair that helps an AI provider
-// understand expected behaviour.
+// Example — необязательная пара вход/выход, помогающая провайдеру ИИ
+// понять ожидаемое поведение.
 type Example struct {
 	Input  string
 	Output string
 }
 
-// FieldInfo describes a single input field passed to MethodRequest.
+// FieldInfo описывает одно входное поле, передаваемое в MethodRequest.
 type FieldInfo struct {
 	Name   string
 	GoType string
 }
 
-// MethodRequest is the context an AI provider receives when asked to
-// generate or scaffold the body of a single service method.
+// MethodRequest — контекст, который провайдер ИИ получает при запросе на
+// генерацию или создание тела одного метода сервиса.
 type MethodRequest struct {
 	MethodName   string
 	InputType    string
@@ -38,33 +38,33 @@ type MethodRequest struct {
 	Description  string
 	Examples     []Example
 
-	// RequiredFields lists input fields marked required: true in the schema.
-	// Used by TemplateProvider to generate validation checks.
+	// RequiredFields перечисляет входные поля, помеченные required: true в схеме.
+	// Используется TemplateProvider для генерации проверок валидации.
 	RequiredFields []FieldInfo
 
-	// Domain error identifiers for use in generated error wrapping.
-	DomainErrDomain     string // e.g. "domain.ErrUserDomain"
-	DomainErrValidation string // e.g. "domain.ErrUserValidation"
-	DomainErrInternal   string // e.g. "domain.ErrUserInternal"
-	DomainErrNotFound   string // e.g. "domain.ErrUserNotFound"
+	// Идентификаторы ошибок домена для использования при оборачивании ошибок в сгенерированном коде.
+	DomainErrDomain     string // например, "domain.ErrUserDomain"
+	DomainErrValidation string // например, "domain.ErrUserValidation"
+	DomainErrInternal   string // например, "domain.ErrUserInternal"
+	DomainErrNotFound   string // например, "domain.ErrUserNotFound"
 }
 
-// FeatureFlag is a conditional-logic hint that the AI provider can use
-// to generate if/switch branches in the service method body.
+// FeatureFlag — подсказка условной логики, которую провайдер ИИ может использовать
+// для генерации ветвей if/switch в теле метода сервиса.
 type FeatureFlag struct {
 	Name         string
 	Description  string
 	DefaultValue bool
 }
 
-// BusinessLogicProvider generates (or scaffolds) the body of service methods.
-// Implementations must be safe for concurrent use.
+// BusinessLogicProvider генерирует (или создаёт заглушку) тела методов сервиса.
+// Реализации должны быть безопасны для конкурентного использования.
 type BusinessLogicProvider interface {
-	// Name returns the unique identifier of this provider (e.g. "noop", "anthropic").
+	// Name возвращает уникальный идентификатор этого провайдера (например, "noop", "anthropic").
 	Name() string
 
-	// GenerateMethodBody returns Go source code for the body of the method
-	// described by req. The returned string must be valid Go — it will be
-	// inserted verbatim inside the generated function.
+	// GenerateMethodBody возвращает исходный код Go для тела метода,
+	// описанного в req. Возвращаемая строка должна быть валидным Go — она будет
+	// вставлена дословно внутрь сгенерированной функции.
 	GenerateMethodBody(ctx context.Context, req MethodRequest) (string, error)
 }

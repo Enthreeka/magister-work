@@ -13,7 +13,7 @@ func newValidateCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "validate",
-		Short: "Validate a system-gen.yaml without generating any files",
+		Short: "Проверить system-gen.yaml без генерации каких-либо файлов",
 		Example: `  codegen validate
   codegen validate --schema ./user/system-gen.yaml`,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -30,6 +30,6 @@ func newValidateCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&schemaPath, "schema", "s", "system-gen.yaml", "path to the requirements YAML file")
+	cmd.Flags().StringVarP(&schemaPath, "schema", "s", "system-gen.yaml", "путь к файлу требований YAML")
 	return cmd
 }

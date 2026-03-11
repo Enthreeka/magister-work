@@ -14,11 +14,11 @@ import (
 	"github.com/Enthreeka/magister-work/internal/schema"
 )
 
-// SqlcStrategy generates the repository layer via the sqlc toolchain.
-// It supports two modes:
-//   - generate: codegen writes sqlc.yaml + .sql files, then calls `sqlc generate`.
-//   - existing: codegen reads the user's sqlc.yaml to derive the RepositoryContract
-//     and generates only service + handler layers on top of it.
+// SqlcStrategy генерирует слой репозитория через инструментарий sqlc.
+// Поддерживает два режима:
+//   - generate: codegen записывает sqlc.yaml + .sql файлы, затем вызывает `sqlc generate`.
+//   - existing: codegen читает sqlc.yaml пользователя для получения RepositoryContract
+//     и генерирует только слои service + handler поверх него.
 type SqlcStrategy struct{}
 
 func (SqlcStrategy) Name() string { return "sqlc" }
@@ -49,19 +49,20 @@ func (s SqlcStrategy) Files(sc *schema.Schema, opts Options) ([]generator.File, 
 	case "generate":
 		return s.generateFiles(sc, opts)
 	case "existing":
-		// In existing mode codegen does not write any repository files.
-		// Service and handler layers are generated on top of the user's sqlc types.
+		// В режиме existing codegen не записывает файлы репозитория.
+		// Слои service и handler генерируются поверх типов sqlc пользователя.
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("sqlc strategy: unknown mode %q", sc.Repository.Sqlc.Mode)
 	}
 }
 
-// generateFiles produces the sqlc config and SQL query file that will be
-// consumed by `sqlc generate` (called in Prepare).
+// generateFiles создаёт конфигурацию sqlc и файл SQL-запросов, которые будут
+// использоваться командой `sqlc generate` (вызывается в Prepare).
 func (SqlcStrategy) generateFiles(s *schema.Schema, opts Options) ([]generator.File, error) {
 	domain := strings.ToLower(s.Domain)
 	baseDir := strings.TrimRight(opts.OutputDir, "/")
+	sqlcDir := filepath.Join(baseDir, "gen", "sqlc")
 
 	sqlcYAML, err := buildSqlcYAML(s, domain, baseDir)
 	if err != nil {
@@ -74,12 +75,12 @@ func (SqlcStrategy) generateFiles(s *schema.Schema, opts Options) ([]generator.F
 
 	return []generator.File{
 		{
-			Path:      filepath.Join(baseDir, domain, "gen", "sqlc", "sqlc.gen.yaml"),
+			Path:      filepath.Join(sqlcDir, "sqlc.gen.yaml"),
 			Content:   []byte(sqlcYAML),
 			Protected: true,
 		},
 		{
-			Path:      filepath.Join(baseDir, domain, "gen", "sqlc", "queries.gen.sql"),
+			Path:      filepath.Join(sqlcDir, "queries.gen.sql"),
 			Content:   []byte(sqlQuery),
 			Protected: true,
 		},
@@ -186,14 +187,14 @@ func buildSQLQuery(s *schema.Schema) (string, error) {
 	return buf.String(), nil
 }
 
-// runSqlcGenerate writes the generated files to disk and invokes `sqlc generate`.
+// runSqlcGenerate записывает сгенерированные файлы на диск и вызывает `sqlc generate`.
 func (s SqlcStrategy) runSqlcGenerate(ctx context.Context, sc *schema.Schema, opts Options) error {
 	files, err := s.generateFiles(sc, opts)
 	if err != nil {
 		return err
 	}
 
-	// Write files before running sqlc
+	// Записываем файлы перед запуском sqlc
 	for _, f := range files {
 		if err := os.MkdirAll(filepath.Dir(f.Path), 0o755); err != nil {
 			return fmt.Errorf("sqlc strategy: mkdir %s: %w", filepath.Dir(f.Path), err)
@@ -203,10 +204,9 @@ func (s SqlcStrategy) runSqlcGenerate(ctx context.Context, sc *schema.Schema, op
 		}
 	}
 
-	// Determine the directory containing sqlc.gen.yaml
-	domain := strings.ToLower(sc.Domain)
+	// Определяем каталог, содержащий sqlc.gen.yaml
 	baseDir := strings.TrimRight(opts.OutputDir, "/")
-	sqlcDir := filepath.Join(baseDir, domain, "gen", "sqlc")
+	sqlcDir := filepath.Join(baseDir, "gen", "sqlc")
 
 	cmd := exec.CommandContext(ctx, "sqlc", "generate")
 	cmd.Dir = sqlcDir

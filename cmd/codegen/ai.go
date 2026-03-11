@@ -22,7 +22,7 @@ import (
 func newAICmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ai",
-		Short: "AI-assisted code generation",
+		Short: "Генерация кода с помощью ИИ",
 	}
 	cmd.AddCommand(newAIFillCmd())
 	cmd.AddCommand(newAIListCmd())
@@ -32,7 +32,7 @@ func newAICmd() *cobra.Command {
 func newAIListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
-		Short: "List available AI providers and their default models",
+		Short: "Показать доступных провайдеров ИИ и их модели по умолчанию",
 		Run: func(_ *cobra.Command, _ []string) {
 			fmt.Println("Available AI providers:\n")
 			fmt.Printf("  %-12s  %-30s  %s\n", "PROVIDER", "DEFAULT MODEL", "ENV VAR")
@@ -73,13 +73,13 @@ func newAIFillCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "fill",
-		Short: "Generate business logic for service.go using an AI provider",
-		Long: `Reads the schema and calls an AI provider to generate the body of
-the service method based on the service.description field.
+		Short: "Генерировать бизнес-логику для service.go с использованием провайдера ИИ",
+		Long: `Читает схему и обращается к провайдеру ИИ для генерации тела
+метода сервиса на основе поля service.description.
 
-The result overwrites service.go — review the output before committing.
+Результат перезаписывает service.go — проверьте вывод перед коммитом.
 
-Requires ANTHROPIC_API_KEY env variable when using the anthropic provider.`,
+Требует переменную окружения ANTHROPIC_API_KEY при использовании провайдера anthropic.`,
 		Example: `  codegen ai fill
   codegen ai fill --schema ./user/system-gen.yaml
   codegen ai fill --provider anthropic --model claude-opus-4-6
@@ -89,17 +89,17 @@ Requires ANTHROPIC_API_KEY env variable when using the anthropic provider.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&f.schemaPath, "schema", "s", "system-gen.yaml", "path to the requirements YAML file")
-	cmd.Flags().StringVarP(&f.outputDir, "output", "o", "", "root output directory (overrides schema output_dir)")
-	cmd.Flags().StringVar(&f.provider, "provider", "anthropic", "AI provider: anthropic | openai | template | noop")
-	cmd.Flags().StringVar(&f.model, "model", "", "model override (e.g. claude-opus-4-6)")
-	cmd.Flags().BoolVar(&f.dryRun, "dry-run", false, "print generated code without writing to disk")
+	cmd.Flags().StringVarP(&f.schemaPath, "schema", "s", "system-gen.yaml", "путь к файлу требований YAML")
+	cmd.Flags().StringVarP(&f.outputDir, "output", "o", "", "корневой каталог вывода (переопределяет output_dir схемы)")
+	cmd.Flags().StringVar(&f.provider, "provider", "anthropic", "провайдер ИИ: anthropic | openai | template | noop")
+	cmd.Flags().StringVar(&f.model, "model", "", "переопределение модели (например, claude-opus-4-6)")
+	cmd.Flags().BoolVar(&f.dryRun, "dry-run", false, "вывести сгенерированный код без записи на диск")
 
 	return cmd
 }
 
 func runAIFill(ctx context.Context, f *aiFillFlags) error {
-	// 1. Parse and validate schema
+	// 1. Разбор и валидация схемы
 	s, err := schema.ParseFile(f.schemaPath)
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func runAIFill(ctx context.Context, f *aiFillFlags) error {
 		return fmt.Errorf("schema validation failed:\n%s", schema.FormatErrors(errs))
 	}
 
-	// 2. Resolve provider — flag overrides schema
+	// 2. Определение провайдера — флаг переопределяет схему
 	providerName := f.provider
 	if s.AIProvider != nil && s.AIProvider.Name != "" && providerName == "anthropic" {
 		providerName = s.AIProvider.Name
@@ -119,35 +119,35 @@ func runAIFill(ctx context.Context, f *aiFillFlags) error {
 		return err
 	}
 
-	// 3. Build template data
+	// 3. Создание данных шаблона
 	data := gogen.BuildTemplateData(s, f.schemaPath, version)
 
-	// 4. Resolve output dir
+	// 4. Определение выходного каталога
 	outputDir := f.outputDir
 	if outputDir == "" {
 		outputDir = generator.ExpandOutputDir(s.Generate.OutputDir, s.Domain)
 	}
 	data.OutputDir = outputDir
 
-	// 5. Build method request with full context
+	// 5. Создание запроса метода с полным контекстом
 	methodReq := layers.BuildMethodRequest(data, s)
 
 	fmt.Printf("Calling %s to generate %s.%s...\n",
 		providerName, data.ServiceType, data.OperationMethod)
 
-	// 6. Call AI
+	// 6. Вызов ИИ
 	methodBody, err := provider.GenerateMethodBody(ctx, methodReq)
 	if err != nil {
 		return fmt.Errorf("ai fill: %w", err)
 	}
 
-	// 7. Render service.go with AI-generated body
+	// 7. Рендеринг service.go с телом, сгенерированным ИИ
 	content, err := renderServiceStub(data, methodBody)
 	if err != nil {
 		return err
 	}
 
-	// 8. Output
+	// 8. Вывод
 	if f.dryRun {
 		fmt.Println("\n--- Generated service.go ---")
 		fmt.Println(content)
@@ -168,7 +168,7 @@ func runAIFill(ctx context.Context, f *aiFillFlags) error {
 }
 
 func resolveProvider(name, modelOverride string, s *schema.Schema) (ai.BusinessLogicProvider, error) {
-	// Merge schema-level config with flag overrides (flags win)
+	// Объединение конфигурации уровня схемы с переопределениями флагов (флаги имеют приоритет)
 	var schemaModel, schemaKeyEnv, schemaBaseURL string
 	if s.AIProvider != nil {
 		schemaModel = s.AIProvider.Model
@@ -202,7 +202,7 @@ func renderServiceStub(data *generator.TemplateData, methodBody string) (string,
 		ResponseType    string
 		MethodBody      string
 	}{
-		// service.go is a user file — no DO NOT EDIT header
+		// service.go — пользовательский файл, заголовок DO NOT EDIT не добавляется
 		DomainImport:    data.Module + "/" + strings.TrimRight(data.OutputDir, "/") + "/domain",
 		ServiceType:     data.ServiceType,
 		DomainTitle:     data.DomainTitle,

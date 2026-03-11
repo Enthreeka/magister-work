@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-// ValidationError describes a single schema violation.
+// ValidationError описывает единственное нарушение схемы.
 type ValidationError struct {
-	Path    string // e.g. "input[0].type"
+	Path    string // например, "input[0].type"
 	Message string
 }
 
@@ -15,8 +15,8 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Path, e.Message)
 }
 
-// Validate checks the schema for consistency and completeness.
-// All discovered errors are returned together; it never stops at the first one.
+// Validate проверяет схему на согласованность и полноту.
+// Все обнаруженные ошибки возвращаются вместе; функция не останавливается на первой.
 func Validate(s *Schema) []ValidationError {
 	var errs []ValidationError
 
@@ -102,7 +102,7 @@ func validateFields(section string, fields []Field) []ValidationError {
 			})
 		}
 
-		// source is only required for input fields
+		// source обязателен только для входных полей
 		if section == "input" && f.Source != "" && !validSources[f.Source] {
 			errs = append(errs, ValidationError{
 				Path:    prefix + ".source",
@@ -201,7 +201,7 @@ func validateSqlcRepository(s *Schema) []ValidationError {
 		})
 	}
 
-	// For generate mode, native fields are also required to build the SQL
+	// Для режима generate нативные поля также необходимы для построения SQL
 	if s.Repository.Sqlc.Mode == "generate" {
 		if s.Repository.Table == "" {
 			errs = append(errs, ValidationError{Path: "repository.table", Message: "required for sqlc generate mode"})
@@ -252,7 +252,7 @@ func validateGenerate(s *Schema) []ValidationError {
 	return errs
 }
 
-// FormatErrors returns all validation errors as a single human-readable string.
+// FormatErrors возвращает все ошибки валидации в виде одной читаемой строки.
 func FormatErrors(errs []ValidationError) string {
 	if len(errs) == 0 {
 		return ""

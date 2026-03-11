@@ -1,6 +1,6 @@
-// Package generator is the orchestration core of codegen.
-// The Engine coordinates schema validation, compat checking, layer generation,
-// and safe file writing.
+// Package generator — оркестрационное ядро codegen.
+// Engine координирует валидацию схемы, проверку совместимости, генерацию слоёв
+// и безопасную запись файлов.
 package generator
 
 import (
@@ -11,25 +11,25 @@ import (
 	"strings"
 )
 
-// LayerGenerator produces files for a single architectural layer.
-// Each language plugin (Go, Python, Rust) implements this interface.
+// LayerGenerator создаёт файлы для одного архитектурного слоя.
+// Этот интерфейс будет реализовать каждый языковой плагин (Go, Python, Rust).
 type LayerGenerator interface {
-	// Layer returns the layer name this generator handles.
+	// Layer возвращает имя слоя, который обрабатывает данный генератор.
 	Layer() string
-	// Generate returns the files that should be written for the given schema data.
+	// Generate возвращает файлы, которые должны быть записаны для указанных данных схемы.
 	Generate(ctx context.Context, data *TemplateData) ([]File, error)
 }
 
-// TemplateData is the unified context passed to every LayerGenerator.
-// It is derived from the parsed Schema plus computed helper fields.
+// TemplateData — унифицированный контекст, передаваемый каждому LayerGenerator.
+// Формируется из разобранной схемы и вычисленных вспомогательных полей.
 type TemplateData struct {
-	// Schema metadata
+	// Метаданные схемы
 	SourceFile string
 	Version    string
 	Module     string
-	OutputDir  string // resolved output directory (set by Engine.Run)
+	OutputDir  string // определённый выходной каталог (устанавливается в Engine.Run)
 
-	// Domain-derived names (pre-computed for templates)
+	// Имена, производные от домена (предвычисленные для шаблонов)
 	Domain          string // "user"
 	DomainTitle     string // "User"
 	RequestType     string // "UserRequest"
@@ -39,43 +39,43 @@ type TemplateData struct {
 	HandlerType     string // "UserHandler"
 	OperationMethod string // "Create"
 
-	// Raw schema sections
-	Input      interface{} // []schema.Field — kept as interface{} to avoid import cycle
+	// Секции сырой схемы
+	Input      interface{} // []schema.Field — хранится как interface{} во избежание циклического импорта
 	Output     interface{}
 	Transport  interface{}
 	Repository interface{}
 	Service    interface{}
 }
 
-// Options controls a single generation run.
+// Options управляет единичным запуском генерации.
 type Options struct {
-	SchemaPath     string
-	OutputDir      string
-	Layers         []string // nil = all
-	DryRun         bool
-	Force          bool // overwrite non-generated user files
-	ForceBreaking  bool
-	SourceFile     string
-	Version        string
+	SchemaPath    string
+	OutputDir     string
+	Layers        []string // nil = все слои
+	DryRun        bool
+	Force         bool // перезаписать пользовательские (несгенерированные) файлы
+	ForceBreaking bool
+	SourceFile    string
+	Version       string
 }
 
-// WriteResult records what happened to a single file during a run.
+// WriteResult фиксирует, что произошло с одним файлом во время запуска.
 type WriteResult struct {
-	Path    string
-	Action  string // created | updated | skipped | dry-run
+	Path   string
+	Action string // created | updated | skipped | dry-run
 }
 
-// Engine orchestrates code generation.
+// Engine оркестрирует генерацию кода.
 type Engine struct {
 	generators map[string]LayerGenerator
 }
 
-// NewEngine creates an Engine with no registered generators.
+// NewEngine создаёт Engine без зарегистрированных генераторов.
 func NewEngine() *Engine {
 	return &Engine{generators: make(map[string]LayerGenerator)}
 }
 
-// Register adds a LayerGenerator. Panics on duplicate layer name.
+// Register добавляет LayerGenerator. Вызывает панику при дублировании имени слоя.
 func (e *Engine) Register(g LayerGenerator) {
 	if _, exists := e.generators[g.Layer()]; exists {
 		panic(fmt.Sprintf("generator: layer %q already registered", g.Layer()))
@@ -83,15 +83,15 @@ func (e *Engine) Register(g LayerGenerator) {
 	e.generators[g.Layer()] = g
 }
 
-// Run executes the full generation pipeline and returns per-file results.
+// Run выполняет полный конвейер генерации и возвращает результаты по каждому файлу.
 func (e *Engine) Run(ctx context.Context, data *TemplateData, opts Options) ([]WriteResult, error) {
 	layers := opts.Layers
 	if len(layers) == 0 {
 		layers = []string{"domain", "repository", "service", "handler"}
 	}
 
-	// Inject resolved output dir into template data so layer generators can
-	// compute correct file paths without knowing the engine's options.
+	// Передаём определённый выходной каталог в данные шаблона, чтобы генераторы слоёв
+	// могли вычислять правильные пути к файлам, не зная параметры движка.
 	data.OutputDir = opts.OutputDir
 
 	var results []WriteResult
@@ -122,7 +122,7 @@ func (e *Engine) writeFile(f File, opts Options) (WriteResult, error) {
 		return WriteResult{Path: f.Path, Action: "dry-run"}, nil
 	}
 
-	// Check if file exists and whether we own it
+	// Проверяем, существует ли файл и принадлежит ли он нам
 	if _, err := os.Stat(f.Path); err == nil {
 		isGen, err := IsGenerated(f.Path)
 		if err != nil {
@@ -130,7 +130,7 @@ func (e *Engine) writeFile(f File, opts Options) (WriteResult, error) {
 		}
 
 		if !isGen && !f.Protected && !opts.Force {
-			// Non-generated stub that the user may have edited — skip it
+			// Несгенерированная заглушка, которую пользователь мог отредактировать — пропускаем
 			return WriteResult{Path: f.Path, Action: "skipped"}, nil
 		}
 		if !isGen && !opts.Force {
@@ -159,7 +159,7 @@ func fileExists(path string) bool {
 	return err == nil
 }
 
-// ExpandOutputDir resolves {{.Domain}} in the output_dir template string.
+// ExpandOutputDir раскрывает {{.Domain}} в строке шаблона output_dir.
 func ExpandOutputDir(tmpl, domain string) string {
 	return strings.ReplaceAll(tmpl, "{{.Domain}}", strings.ToLower(domain))
 }

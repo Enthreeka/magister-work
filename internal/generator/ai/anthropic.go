@@ -14,14 +14,14 @@ const defaultModel = "claude-opus-4-6"
 
 const defaultAPIKeyEnv = "ANTHROPIC_API_KEY"
 
-// AnthropicProvider generates business logic using the Claude API.
-// API key is read from the env variable specified in ApiKeyEnv (default: ANTHROPIC_API_KEY).
+// AnthropicProvider генерирует бизнес-логику с использованием Claude API.
+// API-ключ читается из переменной окружения, указанной в ApiKeyEnv (по умолчанию: ANTHROPIC_API_KEY).
 type AnthropicProvider struct {
-	// Model overrides the default Claude model.
-	// Defaults to claude-opus-4-6 if empty.
+	// Model переопределяет модель Claude по умолчанию.
+	// По умолчанию используется claude-opus-4-6, если пусто.
 	Model string
-	// ApiKeyEnv is the name of the environment variable holding the API key.
-	// Defaults to ANTHROPIC_API_KEY if empty.
+	// ApiKeyEnv — имя переменной окружения, содержащей API-ключ.
+	// По умолчанию ANTHROPIC_API_KEY, если пусто.
 	ApiKeyEnv string
 }
 
@@ -136,8 +136,8 @@ func buildUserPrompt(req MethodRequest) string {
 	return sb.String()
 }
 
-// stripCodeFences removes ```go ... ``` or ``` ... ``` wrappers if the model
-// includes them despite the instructions.
+// stripCodeFences удаляет обёртки ```go ... ``` или ``` ... ```, если модель
+// включает их, несмотря на инструкции.
 func stripCodeFences(s string) string {
 	s = strings.TrimSpace(s)
 	for _, fence := range []string{"```go", "```"} {

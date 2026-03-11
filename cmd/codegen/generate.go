@@ -30,7 +30,7 @@ func newGenerateCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "generate",
-		Short: "Generate code from a system-gen.yaml schema",
+		Short: "Генерировать код из схемы system-gen.yaml",
 		Example: `  codegen generate
   codegen generate --schema ./system-gen.yaml --layers domain,service
   codegen generate --dry-run`,
@@ -39,29 +39,29 @@ func newGenerateCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&f.schemaPath, "schema", "s", "system-gen.yaml", "path to the requirements YAML file")
-	cmd.Flags().StringVarP(&f.outputDir, "output", "o", "", "root output directory (overrides schema output_dir)")
-	cmd.Flags().StringVarP(&f.layers, "layers", "l", "", "comma-separated layers to generate: domain,repository,service,handler")
-	cmd.Flags().BoolVar(&f.dryRun, "dry-run", false, "print files that would be written without writing them")
-	cmd.Flags().BoolVar(&f.force, "force", false, "overwrite user-edited (non-generated) files")
-	cmd.Flags().BoolVar(&f.forceBreaking, "force-breaking", false, "allow breaking schema changes")
+	cmd.Flags().StringVarP(&f.schemaPath, "schema", "s", "system-gen.yaml", "путь к файлу требований YAML")
+	cmd.Flags().StringVarP(&f.outputDir, "output", "o", "", "корневой каталог вывода (переопределяет output_dir схемы)")
+	cmd.Flags().StringVarP(&f.layers, "layers", "l", "", "список слоёв через запятую для генерации: domain,repository,service,handler")
+	cmd.Flags().BoolVar(&f.dryRun, "dry-run", false, "вывести файлы, которые были бы записаны, без фактической записи")
+	cmd.Flags().BoolVar(&f.force, "force", false, "перезаписать отредактированные пользователем (не сгенерированные) файлы")
+	cmd.Flags().BoolVar(&f.forceBreaking, "force-breaking", false, "разрешить ломающие изменения схемы")
 
 	return cmd
 }
 
 func runGenerate(ctx context.Context, f *generateFlags) error {
-	// 1. Parse schema
+	// 1. Разбор схемы
 	s, err := schema.ParseFile(f.schemaPath)
 	if err != nil {
 		return err
 	}
 
-	// 2. Validate
+	// 2. Валидация
 	if errs := schema.Validate(s); len(errs) > 0 {
 		return fmt.Errorf("schema validation failed:\n%s", schema.FormatErrors(errs))
 	}
 
-	// 3. Compat check
+	// 3. Проверка совместимости
 	changes, err := compat.Check(s)
 	if err != nil {
 		return fmt.Errorf("compat check: %w", err)
@@ -76,24 +76,24 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 		}
 	}
 
-	// 4. Resolve output directory
+	// 4. Определение выходного каталога
 	outputDir := f.outputDir
 	if outputDir == "" {
 		outputDir = generator.ExpandOutputDir(s.Generate.OutputDir, s.Domain)
 	}
 
-	// 5. Select repository strategy
+	// 5. Выбор стратегии репозитория
 	repoStrat, err := selectStrategy(s)
 	if err != nil {
 		return err
 	}
 
-	// 6. Build engine and template data
-	// generate always uses TemplateProvider — AI filling is a separate step (codegen ai fill)
+	// 6. Создание движка и данных шаблона
+	// generate всегда использует TemplateProvider — заполнение AI является отдельным шагом (codegen ai fill)
 	engine := gogen.NewEngine(repoStrat, ai.TemplateProvider{})
 	data := gogen.BuildTemplateData(s, f.schemaPath, version)
 
-	// 8. Resolve layers
+	// 8. Определение слоёв
 	var layerList []string
 	if f.layers != "" {
 		layerList = splitTrim(f.layers, ",")
@@ -101,7 +101,7 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 		layerList = expandLayers(s.Generate.Layers)
 	}
 
-	// 8. Run
+	// 8. Запуск
 	opts := generator.Options{
 		SchemaPath:    f.schemaPath,
 		OutputDir:     outputDir,
@@ -118,10 +118,10 @@ func runGenerate(ctx context.Context, f *generateFlags) error {
 		return fmt.Errorf("generation failed: %w", err)
 	}
 
-	// 9. Report
+	// 9. Отчёт
 	printResults(results, f.dryRun)
 
-	// 10. Save lock (only on real run)
+	// 10. Сохранение lock-файла (только при реальном запуске)
 	if !f.dryRun {
 		if err := compat.SaveLock(s); err != nil {
 			fmt.Fprintf(os.Stderr, "warning: could not update %s: %v\n", compat.LockFile, err)

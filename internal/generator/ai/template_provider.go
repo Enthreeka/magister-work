@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-// TemplateProvider generates real working business logic based on the schema.
-// It covers the common case: validate required fields → call repo → wrap errors.
-// This is the default provider and requires no external dependencies.
+// TemplateProvider генерирует реально работающую бизнес-логику на основе схемы.
+// Покрывает типовой случай: валидация обязательных полей → вызов репозитория → оборачивание ошибок.
+// Является провайдером по умолчанию и не требует внешних зависимостей.
 //
-// For custom business rules (uniqueness checks, external calls, etc.) either:
-//   - edit service.go manually after generation, or
-//   - switch to an AI-backed provider via ai_provider in the schema.
+// Для пользовательских бизнес-правил (проверки уникальности, внешние вызовы и т.д.):
+//   - отредактируйте service.go вручную после генерации, или
+//   - переключитесь на провайдера на базе ИИ через ai_provider в схеме.
 type TemplateProvider struct{}
 
 func (TemplateProvider) Name() string { return "template" }
@@ -20,7 +20,7 @@ func (TemplateProvider) Name() string { return "template" }
 func (TemplateProvider) GenerateMethodBody(_ context.Context, req MethodRequest) (string, error) {
 	var sb strings.Builder
 
-	// 1. Validation block for required fields
+	// 1. Блок валидации обязательных полей
 	validations := buildValidations(req)
 	if len(validations) > 0 {
 		for _, v := range validations {
@@ -29,14 +29,14 @@ func (TemplateProvider) GenerateMethodBody(_ context.Context, req MethodRequest)
 		sb.WriteString("\n")
 	}
 
-	// 2. Repository call + error handling
+	// 2. Вызов репозитория + обработка ошибок
 	repoCall := buildRepoCall(req)
 	sb.WriteString(repoCall)
 
 	return sb.String(), nil
 }
 
-// buildValidations generates nil/empty checks for required fields.
+// buildValidations генерирует проверки nil/пустоты для обязательных полей.
 func buildValidations(req MethodRequest) []string {
 	var lines []string
 
@@ -65,7 +65,7 @@ func buildFieldCheck(fieldName, goType, domainErrValidation string) string {
 			camel, fieldName, domainErrValidation,
 		)
 	default:
-		// Pointer types, slices, etc.
+		// Указатели, срезы и т.д.
 		return fmt.Sprintf(
 			"\tif req.%s == nil {\n\t\treturn nil, fmt.Errorf(\"%%w: %s is required\", %s)\n\t}\n",
 			camel, fieldName, domainErrValidation,
@@ -73,7 +73,7 @@ func buildFieldCheck(fieldName, goType, domainErrValidation string) string {
 	}
 }
 
-// buildRepoCall generates the repository invocation with error wrapping.
+// buildRepoCall генерирует вызов репозитория с оборачиванием ошибок.
 func buildRepoCall(req MethodRequest) string {
 	var sb strings.Builder
 
@@ -103,7 +103,7 @@ func buildRepoCall(req MethodRequest) string {
 		sb.WriteString("\treturn nil, nil\n")
 
 	default:
-		// Fallback — should not happen with validated schema
+		// Запасной вариант — не должен произойти при валидированной схеме
 		sb.WriteString(fmt.Sprintf("\treturn s.repo.%s(ctx, req)\n", req.MethodName))
 	}
 

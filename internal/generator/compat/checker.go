@@ -1,6 +1,6 @@
-// Package compat detects breaking changes between two versions of a Schema.
-// It reads and writes a .codegen.lock file (analogous to go.sum) that stores
-// the last successfully generated schema fingerprint.
+// Package compat обнаруживает ломающие изменения между двумя версиями Schema.
+// Пакет читает и записывает файл .codegen.lock (аналог go.sum), хранящий
+// отпечаток последней успешно сгенерированной схемы.
 package compat
 
 import (
@@ -15,7 +15,7 @@ import (
 
 const LockFile = ".codegen.lock"
 
-// Severity classifies the impact of a detected change.
+// Severity классифицирует влияние обнаруженного изменения.
 type Severity string
 
 const (
@@ -23,7 +23,7 @@ const (
 	SeverityWarning Severity = "warning"
 )
 
-// BreakingChange describes a single incompatible schema modification.
+// BreakingChange описывает единственное несовместимое изменение схемы.
 type BreakingChange struct {
 	Path     string
 	Message  string
@@ -34,7 +34,7 @@ func (b BreakingChange) String() string {
 	return fmt.Sprintf("[%s] %s: %s", strings.ToUpper(string(b.Severity)), b.Path, b.Message)
 }
 
-// lockEntry is the persisted snapshot of a generated schema.
+// lockEntry — сохранённый снимок сгенерированной схемы.
 type lockEntry struct {
 	Domain    string         `json:"domain"`
 	Transport lockTransport  `json:"transport"`
@@ -54,12 +54,12 @@ type lockField struct {
 	Required bool   `json:"required"`
 }
 
-// lockFile is the full contents of .codegen.lock, keyed by domain.
+// lockFile — полное содержимое .codegen.lock, индексированное по домену.
 type lockFile map[string]lockEntry
 
-// Check compares the incoming schema against the stored lock entry.
-// It returns all detected breaking changes. An empty slice means the
-// schema is backward-compatible with the previous generation.
+// Check сравнивает входящую схему с сохранённой записью lock.
+// Возвращает все обнаруженные ломающие изменения. Пустой срез означает,
+// что схема обратно совместима с предыдущей генерацией.
 func Check(s *schema.Schema) ([]BreakingChange, error) {
 	prev, err := loadLock()
 	if err != nil {
@@ -68,14 +68,14 @@ func Check(s *schema.Schema) ([]BreakingChange, error) {
 
 	entry, exists := prev[s.Domain]
 	if !exists {
-		// First time this domain is generated — no previous state to compare.
+		// Домен генерируется впервые — нет предыдущего состояния для сравнения.
 		return nil, nil
 	}
 
 	return compare(entry, s), nil
 }
 
-// SaveLock persists the schema as the new lock entry after a successful generation.
+// SaveLock сохраняет схему как новую запись lock после успешной генерации.
 func SaveLock(s *schema.Schema) error {
 	lock, err := loadLock()
 	if err != nil {
@@ -128,7 +128,7 @@ func toEntry(s *schema.Schema) lockEntry {
 func compare(prev lockEntry, s *schema.Schema) []BreakingChange {
 	var changes []BreakingChange
 
-	// Transport: method change is always breaking
+	// Transport: изменение метода всегда является ломающим
 	if !strings.EqualFold(prev.Transport.Method, s.Transport.Method) {
 		changes = append(changes, BreakingChange{
 			Path:     "transport.method",
@@ -136,7 +136,7 @@ func compare(prev lockEntry, s *schema.Schema) []BreakingChange {
 			Severity: SeverityError,
 		})
 	}
-	// URL change is a warning (clients may still work with redirects)
+	// Изменение URL является предупреждением (клиенты могут продолжать работать с перенаправлениями)
 	if prev.Transport.URL != s.Transport.URL {
 		changes = append(changes, BreakingChange{
 			Path:     "transport.url",
@@ -145,7 +145,7 @@ func compare(prev lockEntry, s *schema.Schema) []BreakingChange {
 		})
 	}
 
-	// Repository operation change is always breaking
+	// Изменение операции репозитория всегда является ломающим
 	if !strings.EqualFold(prev.Operation, s.Repository.Operation) {
 		changes = append(changes, BreakingChange{
 			Path:     "repository.operation",
@@ -154,12 +154,12 @@ func compare(prev lockEntry, s *schema.Schema) []BreakingChange {
 		})
 	}
 
-	// Input fields: removals and type changes are breaking
+	// Входные поля: удаления и изменения типов являются ломающими
 	prevInput := indexFields(prev.Input)
 	for _, curr := range s.Input {
 		old, existed := prevInput[curr.Name]
 		if !existed {
-			continue // new field — non-breaking
+			continue // новое поле — не является ломающим
 		}
 		if old.Type != curr.Type {
 			changes = append(changes, BreakingChange{
@@ -182,7 +182,7 @@ func compare(prev lockEntry, s *schema.Schema) []BreakingChange {
 		}
 	}
 
-	// Output fields: removals are breaking (clients depend on response shape)
+	// Выходные поля: удаления являются ломающими (клиенты зависят от формы ответа)
 	currOutput := indexFields(toSchemaFields(s.Output))
 	for _, old := range prev.Output {
 		if _, exists := currOutput[old.Name]; !exists {
@@ -213,7 +213,7 @@ func toSchemaFields(fields []schema.Field) []lockField {
 	return out
 }
 
-// HasErrors returns true if any of the changes have SeverityError.
+// HasErrors возвращает true, если хотя бы одно из изменений имеет уровень SeverityError.
 func HasErrors(changes []BreakingChange) bool {
 	for _, c := range changes {
 		if c.Severity == SeverityError {

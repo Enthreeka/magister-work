@@ -1,6 +1,6 @@
-// Package golang is the Go language plugin for codegen.
-// It wires together the domain, repository, service, and handler layer generators
-// and exposes a single NewEngine factory that returns a configured generator.Engine.
+// Package golang — языковой плагин Go для codegen.
+// Связывает генераторы слоёв domain, repository, service и handler
+// и предоставляет единую фабрику NewEngine, возвращающую настроенный generator.Engine.
 package golang
 
 import (
@@ -13,8 +13,8 @@ import (
 	"github.com/Enthreeka/magister-work/internal/schema"
 )
 
-// NewEngine creates a generator.Engine pre-loaded with all Go layer generators.
-// strategy is "native" or "sqlc"; aiProvider defaults to noop if empty.
+// NewEngine создаёт generator.Engine, предварительно загруженный всеми генераторами слоёв Go.
+// strategy — "native" или "sqlc"; aiProvider по умолчанию равен noop, если не задан.
 func NewEngine(repoStrategy repostrategy.Strategy, aiProvider ai.BusinessLogicProvider) *generator.Engine {
 	e := generator.NewEngine()
 

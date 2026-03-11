@@ -14,7 +14,7 @@ func newDiffCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "diff",
-		Short: "Show schema changes since the last generation (reads .codegen.lock)",
+		Short: "Показать изменения схемы с момента последней генерации (читает .codegen.lock)",
 		Example: `  codegen diff
   codegen diff --schema ./user/system-gen.yaml`,
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -39,12 +39,12 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			if compat.HasErrors(changes) {
-				fmt.Println("\nThis schema has breaking changes. Use --force-breaking with generate to proceed.")
+				fmt.Println("\nВ схеме обнаружены ломающие изменения. Используйте --force-breaking с generate для продолжения.")
 			}
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&schemaPath, "schema", "s", "system-gen.yaml", "path to the requirements YAML file")
+	cmd.Flags().StringVarP(&schemaPath, "schema", "s", "system-gen.yaml", "путь к файлу требований YAML")
 	return cmd
 }

@@ -7,8 +7,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ParseFile reads and parses a system-gen.yaml file into a Schema.
-// It returns an error if the file cannot be read or the YAML is malformed.
+// ParseFile читает и разбирает файл system-gen.yaml в структуру Schema.
+// Возвращает ошибку, если файл не удалось прочитать или YAML некорректен.
 func ParseFile(path string) (*Schema, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -17,7 +17,7 @@ func ParseFile(path string) (*Schema, error) {
 	return Parse(data)
 }
 
-// Parse unmarshals raw YAML bytes into a Schema.
+// Parse десериализует сырые байты YAML в структуру Schema.
 func Parse(data []byte) (*Schema, error) {
 	var s Schema
 	if err := yaml.Unmarshal(data, &s); err != nil {
